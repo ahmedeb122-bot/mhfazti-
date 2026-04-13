@@ -588,12 +588,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   <div class="pin-logo">💎</div>
   <div class="pin-title">محفظتي</div>
   <div class="pin-sub">أدخل رمز المرور</div>
-  <button id="bio-btn" onclick="tryBiometric()" style="
-    display:none;margin-bottom:16px;padding:10px 24px;
-    background:var(--glass);border:1px solid var(--border2);
-    border-radius:var(--radius-md);color:var(--neon-purple);
-    font-size:14px;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;
-  ">👆 دخول ببصمة الإصبع</button>
+
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
@@ -1090,6 +1085,8 @@ function updatePinDots() {
 }
 
 function checkPin() {
+  // Always re-read PIN from storage (fixes PWA cache issues)
+  STATE.pin = localStorage.getItem('app_pin') || '1234';
   if (STATE.pinInput === STATE.pin) {
     document.getElementById('pin-screen').classList.add('hidden');
     document.getElementById('app').classList.add('visible');
@@ -1969,51 +1966,6 @@ function viewPeriodDetail(periodId) {
   switchView('transactions');
 }
 
-// ===== BIOMETRIC AUTH =====
-async function tryBiometric() {
-  try {
-    if (!window.PublicKeyCredential) { showToast('البصمة غير مدعومة', 'error'); return; }
-    
-    // Use WebAuthn / device biometric
-    const credential = await navigator.credentials.get({
-      publicKey: {
-        challenge: new Uint8Array(32),
-        timeout: 60000,
-        userVerification: 'required',
-        rpId: window.location.hostname
-      }
-    });
-    
-    if (credential) {
-      // Biometric success
-      document.getElementById('pin-screen').classList.add('hidden');
-      document.getElementById('app').classList.add('visible');
-      loadData();
-      if (STATE.autoOpenSMS && STATE.pendingSMS) {
-        setTimeout(() => {
-          const parsed = parseSMSText(STATE.pendingSMS);
-          if (parsed && !parsed.internal) showPopup(parsed);
-          STATE.autoOpenSMS = false;
-          STATE.pendingSMS = null;
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }, 400);
-      }
-    }
-  } catch(e) {
-    // Fallback to PIN silently
-    showToast('استخدم رمز المرور', 'error');
-  }
-}
-
-// Check biometric availability on load
-window.addEventListener('load', () => {
-  if (window.PublicKeyCredential) {
-    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(available => {
-      if (available) document.getElementById('bio-btn').style.display = 'block';
-    }).catch(() => {});
-  }
-});
-
 // ===== KEYBOARD SHORTCUT (Desktop) =====
 document.addEventListener('keydown', e => {
   if (document.getElementById('pin-screen').style.opacity !== '0' &&
@@ -2026,11 +1978,11 @@ document.addEventListener('keydown', e => {
 
 // ===== INIT =====
 window.addEventListener('load', () => {
-  // First time: set default PIN
+  // Load PIN from storage
   if (!localStorage.getItem('app_pin')) {
     localStorage.setItem('app_pin', '1234');
-    STATE.pin = '1234';
   }
+  STATE.pin = localStorage.getItem('app_pin');
 
   // قراءة رسالة SMS من الرابط (Tasker يرسلها هكذا)
   const urlParams = new URLSearchParams(window.location.search);
