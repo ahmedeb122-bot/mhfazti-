@@ -6,6 +6,11 @@
 <title>محفظتي — النظام المالي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="محفظتي">
 <style>
 /* ===== RESET & BASE ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -583,6 +588,12 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   <div class="pin-logo">💎</div>
   <div class="pin-title">محفظتي</div>
   <div class="pin-sub">أدخل رمز المرور</div>
+  <button id="bio-btn" onclick="tryBiometric()" style="
+    display:none;margin-bottom:16px;padding:10px 24px;
+    background:var(--glass);border:1px solid var(--border2);
+    border-radius:var(--radius-md);color:var(--neon-purple);
+    font-size:14px;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;
+  ">👆 دخول ببصمة الإصبع</button>
   <div class="pin-dots" id="pin-dots">
     <div class="pin-dot" id="d0"></div>
     <div class="pin-dot" id="d1"></div>
@@ -676,7 +687,14 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 <div id="app">
   <!-- Top bar -->
   <div class="topbar">
-    <div class="topbar-logo">💎 محفظتي</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="topbar-logo">💎 محفظتي</div>
+      <div id="period-badge" onclick="switchView('periods')" style="
+        padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+        background:var(--purple-dim);border:1px solid var(--neon-purple);
+        color:var(--neon-purple);cursor:pointer;white-space:nowrap;
+      ">...</div>
+    </div>
     <div class="topbar-actions">
       <div class="icon-btn" onclick="showSMSInput()" title="إدخال SMS">📩</div>
       <div class="icon-btn" onclick="lockApp()" title="قفل">🔒</div>
@@ -897,6 +915,47 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
+    <!-- ====== VIEW: PERIODS ====== -->
+    <div id="view-periods" class="view">
+      <div style="margin-top:8px">
+
+        <!-- Current period -->
+        <div id="current-period-card" style="
+          padding:18px;border-radius:var(--radius-lg);margin-bottom:20px;
+          background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(96,165,250,0.1));
+          border:1px solid rgba(167,139,250,0.3);
+        ">
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">الفترة الحالية النشطة</div>
+          <div id="cur-period-name" style="font-size:20px;font-weight:700;color:var(--neon-purple)">—</div>
+          <div id="cur-period-stats" style="font-size:13px;color:var(--text-secondary);margin-top:8px">—</div>
+          <button onclick="closePeriod()" style="
+            width:100%;margin-top:14px;padding:11px;border-radius:var(--radius-sm);
+            background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);
+            color:var(--neon-red);font-size:13px;font-weight:600;cursor:pointer;
+            font-family:'IBM Plex Sans Arabic',sans-serif;
+          ">🔒 إغلاق هذه الفترة وبدء فترة جديدة</button>
+        </div>
+
+        <!-- New period button -->
+        <button onclick="newPeriod()" style="
+          width:100%;padding:14px;border-radius:var(--radius-md);margin-bottom:20px;
+          background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(79,70,229,0.3));
+          border:1px solid rgba(124,58,237,0.4);color:var(--neon-purple);
+          font-size:14px;font-weight:600;cursor:pointer;
+          font-family:'IBM Plex Sans Arabic',sans-serif;
+        ">＋ فترة جديدة (شهر / سنة / مخصص)</button>
+
+        <!-- Past periods -->
+        <div class="section-title" style="margin-bottom:12px">الفترات السابقة</div>
+        <div id="periods-list">
+          <div class="empty-state">
+            <div class="empty-state-icon">🗓️</div>
+            <div class="empty-state-text">لا توجد فترات سابقة بعد</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div><!-- /scroll-area -->
 
   <!-- Bottom nav -->
@@ -912,6 +971,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     </button>
     <button class="nav-btn" id="nav-reports" onclick="switchView('reports')">
       <span class="nav-btn-icon">📊</span>التقارير
+    </button>
+    <button class="nav-btn" id="nav-periods" onclick="switchView('periods')">
+      <span class="nav-btn-icon">🗓️</span>الفترات
     </button>
     <button class="nav-btn" id="nav-settings" onclick="switchView('settings')">
       <span class="nav-btn-icon">⚙️</span>الإعدادات
@@ -989,8 +1051,8 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 // ===== CONFIG =====
 const API_URL = 'https://script.google.com/macros/s/AKfycbwC4v4jbQmCwzxvbMjqOiIOfvaaLAXLoNBzOougxsbekBMgHKT782chFs1gJzQgUG4/exec';
 const SHEETS_URL = 'https://docs.google.com/spreadsheets'; // Update with your sheet URL
-const HADEEL_WHATSAPP = ''; // ضع رقم واتساب هديل هنا
-const WALID_WHATSAPP = ''; // ضع رقم واتساب وليد هنا
+const HADEEL_WHATSAPP = '00249998451318'; // ضع رقم واتساب هديل هنا
+const WALID_WHATSAPP = '00966539635310'; // ضع رقم واتساب وليد هنا
 
 // ===== STATE =====
 let STATE = {
@@ -1081,6 +1143,7 @@ function switchView(name) {
   if (name === 'invoices') loadInvoices();
   if (name === 'reports') loadReports();
   if (name === 'transactions') renderTransactions('full');
+  if (name === 'periods') loadPeriodsView();
 }
 
 // ===== SMS PARSER (client-side) =====
@@ -1197,10 +1260,80 @@ function showPopup(parsed) {
   document.getElementById('invoice-row').classList.remove('show');
   document.getElementById('inv1').classList.remove('checked');
   document.getElementById('inv2').classList.remove('checked');
+  document.getElementById('category-section').style.display = 'none';
 
-  // For income, hide wallet for income (auto-ask which wallet)
+  const isIncome = parsed.type === 'وارد';
+
+  // For INCOME: show راتب and هديل only (no عهدة)
+  // For EXPENSE: show شخصي and عهدة and هديل
+  if (isIncome) {
+    document.getElementById('wallet-label').textContent = 'أضف لأي رصيد؟';
+    document.getElementById('wb-salary').innerHTML = '💼 راتب<span class="wbal" id="wb-sal-bal">' + formatNum(STATE.balances.salary) + '</span>';
+    document.getElementById('wb-salary').onclick = function(){ selectWallet('راتب'); };
+    document.getElementById('wb-work').style.display = 'flex';
+    document.getElementById('wb-work').innerHTML = '🏗️ عهدة<span class="wbal" id="wb-work-bal">' + formatNum(STATE.balances.work) + '</span>';
+    document.getElementById('wb-work').onclick = function(){ selectWallet('عهدة'); };
+    document.getElementById('wb-hadeel').style.display = 'flex';
+  } else {
+    document.getElementById('wallet-label').textContent = 'من أي رصيد؟';
+    document.getElementById('wb-work').style.display = 'flex';
+    document.getElementById('wb-hadeel').style.display = 'flex';
+    // Change راتب button to شخصي for expenses
+    document.getElementById('wb-salary').innerHTML = '👤 شخصي<span class="wbal" id="wb-sal-bal">' + formatNum(STATE.balances.salary) + '</span>';
+    document.getElementById('wb-salary').onclick = function(){ selectWallet('راتب'); showCategorySelector(); };
+  }
+
   document.getElementById('sms-popup').classList.add('active');
   document.body.style.overflow = 'hidden';
+}
+
+// Show personal expense categories
+function showCategorySelector() {
+  const categories = [
+    {icon:'🍔', label:'طعام ومشروبات'},
+    {icon:'⛽', label:'وقود'},
+    {icon:'🏠', label:'إيجار سكن'},
+    {icon:'⚡', label:'كهرباء وماء'},
+    {icon:'🏘️', label:'سكن مشترك'},
+    {icon:'👨‍👩‍👧', label:'تحويل للأهل'},
+    {icon:'🛒', label:'منصرفات المنزل'},
+    {icon:'💊', label:'صحة'},
+    {icon:'👕', label:'ملابس'},
+    {icon:'📱', label:'اتصالات'},
+    {icon:'🎮', label:'ترفيه'},
+    {icon:'📦', label:'أخرى'},
+  ];
+  const btns = document.getElementById('category-btns');
+  btns.innerHTML = categories.map(c =>
+    \`<button onclick="selectCategory('\${c.label}')" style="
+      padding:10px 8px;border-radius:var(--radius-sm);
+      background:var(--glass);border:1px solid var(--border);
+      color:var(--text-secondary);font-size:12px;font-weight:500;
+      cursor:pointer;transition:all 0.15s;text-align:center;
+      font-family:'IBM Plex Sans Arabic',sans-serif;
+      display:flex;flex-direction:column;align-items:center;gap:4px;
+    " id="cat-\${c.label}">
+      <span style="font-size:18px">\${c.icon}</span>
+      <span>\${c.label}</span>
+    </button>\`
+  ).join('');
+  document.getElementById('category-section').style.display = 'block';
+}
+
+function selectCategory(cat) {
+  STATE.selectedCategory = cat;
+  document.querySelectorAll('[id^="cat-"]').forEach(b => {
+    b.style.background = 'var(--glass)';
+    b.style.borderColor = 'var(--border)';
+    b.style.color = 'var(--text-secondary)';
+  });
+  const el = document.getElementById('cat-' + cat);
+  if (el) {
+    el.style.background = 'var(--purple-dim)';
+    el.style.borderColor = 'var(--neon-purple)';
+    el.style.color = 'var(--neon-purple)';
+  }
+  showToast('✅ ' + cat, 'success');
 }
 
 function selectWallet(name) {
@@ -1268,6 +1401,7 @@ async function saveFromPopup() {
   const tx = {
     ...STATE.currentPopup,
     wallet: STATE.selectedWallet,
+    category: STATE.selectedCategory || '',
     invoiceReceived: STATE.inv1Checked,
     invoiceSubmitted: STATE.inv2Checked,
     coverageWallet: STATE.coverageWallet || null,
@@ -1309,6 +1443,7 @@ async function saveFromPopup() {
   btn.innerHTML = '💾 حفظ المعاملة';
   STATE.coverageWallet = null;
   STATE.coverageAmount = 0;
+  STATE.selectedCategory = '';
 }
 
 function closePopup() {
@@ -1356,6 +1491,7 @@ async function loadData() {
 
   renderTransactions('home');
   calcStats();
+  initPeriods();
 }
 
 function updateBalanceUI() {
@@ -1674,6 +1810,209 @@ function showToast(msg, type = 'success') {
   t.className = 'toast show ' + type;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
+
+// ===== PERIOD SYSTEM =====
+function initPeriods() {
+  let periods = JSON.parse(localStorage.getItem('periods') || '[]');
+  
+  // If no periods, create first one automatically
+  if (!periods.length) {
+    const now = new Date();
+    const label = now.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+    periods.push({
+      id: now.toISOString().slice(0,7),
+      label: label,
+      start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(),
+      end: null,
+      active: true
+    });
+    localStorage.setItem('periods', JSON.stringify(periods));
+  }
+  
+  STATE.periods = periods;
+  STATE.activePeriod = periods.find(p => p.active) || periods[periods.length - 1];
+  updatePeriodBadge();
+}
+
+function updatePeriodBadge() {
+  const p = STATE.activePeriod;
+  if (p) {
+    document.getElementById('period-badge').textContent = p.label;
+  }
+}
+
+function loadPeriodsView() {
+  const periods = STATE.periods || [];
+  const active = STATE.activePeriod;
+
+  // Current period card
+  if (active) {
+    document.getElementById('cur-period-name').textContent = active.label;
+    const txs = getTransactionsForPeriod(active);
+    const income = txs.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
+    const expense = txs.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
+    document.getElementById('cur-period-stats').textContent =
+      '↑ وارد: ' + formatNum(income) + ' SAR    ↓ صادر: ' + formatNum(expense) + ' SAR    ('+txs.length+' معاملة)';
+  }
+
+  // Past periods list
+  const past = periods.filter(p => !p.active).reverse();
+  const list = document.getElementById('periods-list');
+  if (!past.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🗓️</div><div class="empty-state-text">لا توجد فترات سابقة بعد</div></div>';
+    return;
+  }
+
+  list.innerHTML = past.map(p => {
+    const txs = getTransactionsForPeriod(p);
+    const income = txs.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
+    const expense = txs.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
+    const net = income - expense;
+    return `<div style="
+      padding:14px 16px;border-radius:var(--radius-md);margin-bottom:8px;
+      background:var(--glass);border:1px solid var(--border);cursor:pointer;
+    " onclick="viewPeriodDetail('${p.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:15px;font-weight:600">${p.label}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:14px;
+          color:${net >= 0 ? 'var(--neon-green)' : 'var(--neon-red)'}">
+          ${net >= 0 ? '+' : ''}${formatNum(net)}
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">
+        ${txs.length} معاملة · وارد ${formatNum(income)} · صادر ${formatNum(expense)}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getTransactionsForPeriod(period) {
+  const txs = STATE.transactions;
+  const start = new Date(period.start);
+  const end = period.end ? new Date(period.end) : new Date();
+  return txs.filter(tx => {
+    const d = new Date(tx.timestamp);
+    return d >= start && d <= end;
+  });
+}
+
+function closePeriod() {
+  if (!confirm('هل أنت متأكد من إغلاق الفترة الحالية؟ ستبدأ فترة جديدة تلقائياً.')) return;
+  
+  const periods = STATE.periods;
+  const active = periods.find(p => p.active);
+  if (active) {
+    active.end = new Date().toISOString();
+    active.active = false;
+  }
+  
+  // Create new period
+  const now = new Date();
+  const label = now.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+  periods.push({
+    id: now.toISOString().slice(0,7) + '-' + Date.now(),
+    label: label,
+    start: now.toISOString(),
+    end: null,
+    active: true
+  });
+  
+  localStorage.setItem('periods', JSON.stringify(periods));
+  STATE.activePeriod = periods[periods.length - 1];
+  updatePeriodBadge();
+  loadPeriodsView();
+  showToast('✅ تم إغلاق الفترة وبدء فترة جديدة', 'success');
+}
+
+function newPeriod() {
+  const types = ['شهر جديد', 'سنة جديدة', 'مخصص'];
+  const choice = prompt('نوع الفترة الجديدة:\n1. شهر جديد\n2. سنة جديدة\n3. مخصص\n\nاكتب 1 أو 2 أو 3:');
+  
+  let label = '';
+  const now = new Date();
+  
+  if (choice === '1') {
+    label = now.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' });
+  } else if (choice === '2') {
+    label = 'سنة ' + now.getFullYear();
+  } else if (choice === '3') {
+    label = prompt('اسم الفترة (مثال: الربع الأول 2026):') || 'فترة مخصصة';
+  } else return;
+  
+  // Close current active
+  const periods = STATE.periods;
+  const active = periods.find(p => p.active);
+  if (active) { active.end = now.toISOString(); active.active = false; }
+  
+  periods.push({
+    id: now.toISOString().slice(0,7) + '-' + Date.now(),
+    label: label,
+    start: now.toISOString(),
+    end: null,
+    active: true
+  });
+  
+  localStorage.setItem('periods', JSON.stringify(periods));
+  STATE.activePeriod = periods[periods.length - 1];
+  updatePeriodBadge();
+  loadPeriodsView();
+  showToast('✅ تم إنشاء فترة: ' + label, 'success');
+}
+
+function viewPeriodDetail(periodId) {
+  const period = STATE.periods.find(p => p.id === periodId);
+  if (!period) return;
+  const txs = getTransactionsForPeriod(period);
+  STATE.transactions_backup = STATE.transactions;
+  STATE.transactions = txs;
+  document.getElementById('tx-filter-label').textContent = '← ' + period.label;
+  switchView('transactions');
+}
+
+// ===== BIOMETRIC AUTH =====
+async function tryBiometric() {
+  try {
+    if (!window.PublicKeyCredential) { showToast('البصمة غير مدعومة', 'error'); return; }
+    
+    // Use WebAuthn / device biometric
+    const credential = await navigator.credentials.get({
+      publicKey: {
+        challenge: new Uint8Array(32),
+        timeout: 60000,
+        userVerification: 'required',
+        rpId: window.location.hostname
+      }
+    });
+    
+    if (credential) {
+      // Biometric success
+      document.getElementById('pin-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+      loadData();
+      if (STATE.autoOpenSMS && STATE.pendingSMS) {
+        setTimeout(() => {
+          const parsed = parseSMSText(STATE.pendingSMS);
+          if (parsed && !parsed.internal) showPopup(parsed);
+          STATE.autoOpenSMS = false;
+          STATE.pendingSMS = null;
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }, 400);
+      }
+    }
+  } catch(e) {
+    // Fallback to PIN silently
+    showToast('استخدم رمز المرور', 'error');
+  }
+}
+
+// Check biometric availability on load
+window.addEventListener('load', () => {
+  if (window.PublicKeyCredential) {
+    PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().then(available => {
+      if (available) document.getElementById('bio-btn').style.display = 'block';
+    }).catch(() => {});
+  }
+});
 
 // ===== KEYBOARD SHORTCUT (Desktop) =====
 document.addEventListener('keydown', e => {
