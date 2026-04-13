@@ -1032,6 +1032,24 @@ function checkPin() {
     document.getElementById('pin-screen').classList.add('hidden');
     document.getElementById('app').classList.add('visible');
     loadData();
+
+    // إذا كان هناك SMS قادم من Tasker — افتح الـ Popup تلقائياً
+    if (STATE.autoOpenSMS && STATE.pendingSMS) {
+      setTimeout(() => {
+        const parsed = parseSMSText(STATE.pendingSMS);
+        if (parsed && !parsed.internal) {
+          showPopup(parsed);
+        } else if (parsed && parsed.internal) {
+          showToast('🔄 تحويل داخلي — تم تجاهله', 'success');
+        } else {
+          showToast('⚠️ الرسالة ليست معاملة مالية', 'error');
+        }
+        STATE.autoOpenSMS = false;
+        STATE.pendingSMS = null;
+        // نظّف الرابط من المتصفح
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }, 600);
+    }
   } else {
     document.getElementById('pin-error').classList.add('show');
     document.getElementById('pin-screen').style.animation = 'shake 0.4s ease';
@@ -1668,12 +1686,26 @@ document.addEventListener('keydown', e => {
 });
 
 // ===== INIT =====
-// Auto-show PIN on load
 window.addEventListener('load', () => {
   // First time: set default PIN
   if (!localStorage.getItem('app_pin')) {
     localStorage.setItem('app_pin', '1234');
     STATE.pin = '1234';
+  }
+
+  // قراءة رسالة SMS من الرابط (Tasker يرسلها هكذا)
+  const urlParams = new URLSearchParams(window.location.search);
+  const smsFromUrl = urlParams.get('sms');
+
+  if (smsFromUrl) {
+    // فك تشفير الرسالة
+    const smsText = decodeURIComponent(smsFromUrl);
+
+    // احفظ الرسالة مؤقتاً
+    STATE.pendingSMS = smsText;
+
+    // بعد فتح التطبيق بـ PIN، شغّل الـ Popup تلقائياً
+    STATE.autoOpenSMS = true;
   }
 });
 </script>
