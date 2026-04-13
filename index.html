@@ -89,56 +89,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
 /* ===================================================
-   PIN LOCK SCREEN
-   =================================================== */
-#pin-screen{
-  position:fixed;inset:0;z-index:1000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  background:var(--bg0);
-  transition:opacity 0.5s,transform 0.5s;
-}
-#pin-screen.hidden{opacity:0;pointer-events:none;transform:scale(1.05)}
-
-.pin-logo{
-  font-size:42px;margin-bottom:8px;
-  filter:drop-shadow(0 0 20px var(--neon-purple));
-}
-.pin-title{font-size:22px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
-.pin-sub{font-size:13px;color:var(--text-secondary);margin-bottom:40px}
-
-.pin-dots{display:flex;gap:14px;margin-bottom:36px}
-.pin-dot{
-  width:14px;height:14px;border-radius:50%;
-  border:2px solid var(--text-muted);
-  transition:all 0.2s;
-}
-.pin-dot.filled{background:var(--neon-purple);border-color:var(--neon-purple);
-  box-shadow:0 0 12px var(--neon-purple)}
-
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:260px}
-.pin-btn{
-  height:64px;border-radius:var(--radius-md);
-  background:var(--glass);border:1px solid var(--border);
-  color:var(--text-primary);font-size:22px;font-weight:500;
-  cursor:pointer;transition:all 0.15s;
-  font-family:'IBM Plex Sans Arabic',sans-serif;
-  display:flex;align-items:center;justify-content:center;
-}
-.pin-btn:active,.pin-btn:hover{
-  background:var(--glass2);border-color:var(--neon-purple);
-  box-shadow:0 0 20px rgba(167,139,250,0.3);
-  transform:scale(0.96);
-}
-.pin-btn.danger{color:var(--neon-red)}
-.pin-btn.wide{grid-column:span 3}
-
-.pin-error{
-  color:var(--neon-red);font-size:13px;margin-top:16px;
-  opacity:0;transition:opacity 0.3s;min-height:20px;
-}
-.pin-error.show{opacity:1}
-
-/* ===================================================
    BLOCKING SMS POPUP
    =================================================== */
 #sms-popup{
@@ -582,37 +532,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 <div class="bg-grid"></div>
 
 <!-- ================================================
-     PIN LOCK SCREEN
-     ================================================ -->
-<div id="pin-screen">
-  <div class="pin-logo">💎</div>
-  <div class="pin-title">محفظتي</div>
-  <div class="pin-sub">أدخل رمز المرور</div>
-
-  <div class="pin-dots" id="pin-dots">
-    <div class="pin-dot" id="d0"></div>
-    <div class="pin-dot" id="d1"></div>
-    <div class="pin-dot" id="d2"></div>
-    <div class="pin-dot" id="d3"></div>
-  </div>
-  <div class="pin-pad">
-    <button class="pin-btn" onclick="pinPress('1')">1</button>
-    <button class="pin-btn" onclick="pinPress('2')">2</button>
-    <button class="pin-btn" onclick="pinPress('3')">3</button>
-    <button class="pin-btn" onclick="pinPress('4')">4</button>
-    <button class="pin-btn" onclick="pinPress('5')">5</button>
-    <button class="pin-btn" onclick="pinPress('6')">6</button>
-    <button class="pin-btn" onclick="pinPress('7')">7</button>
-    <button class="pin-btn" onclick="pinPress('8')">8</button>
-    <button class="pin-btn" onclick="pinPress('9')">9</button>
-    <button class="pin-btn" onclick="pinPress('*')">⌫ مسح</button>
-    <button class="pin-btn" onclick="pinPress('0')">0</button>
-    <button class="pin-btn danger" onclick="pinPress('X')">✕</button>
-  </div>
-  <div class="pin-error" id="pin-error">رمز المرور غير صحيح</div>
-</div>
-
-<!-- ================================================
      SMS BLOCKING POPUP
      ================================================ -->
 <div id="sms-popup">
@@ -866,10 +785,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       <div style="margin-top:8px">
         <div class="section-title" style="margin-bottom:16px">الإعدادات</div>
 
-        <div class="settings-item" onclick="changePIN()">
+        <div class="settings-item" style="opacity:0.5;cursor:default">
           <div>
-            <div class="settings-item-label">🔑 تغيير رمز المرور</div>
-            <div class="settings-item-sub">الرمز الحالي: 4 أرقام</div>
+            <div class="settings-item-label">🔐 الحماية عبر Tasker</div>
+            <div class="settings-item-sub">البصمة مفعّلة من إعدادات Tasker</div>
           </div>
           <div class="settings-item-arrow">›</div>
         </div>
@@ -977,65 +896,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 </div>
 
 
-<!-- PIN CHANGE MODAL -->
-<div id="pin-change-modal" style="
-  position:fixed;inset:0;z-index:2000;
-  background:rgba(5,6,15,0.97);
-  display:none;align-items:center;justify-content:center;padding:24px;
-">
-  <div style="
-    width:100%;max-width:340px;
-    background:var(--bg2);border:1px solid var(--border2);
-    border-radius:var(--radius-xl);padding:28px 24px;
-  ">
-    <div style="font-size:18px;font-weight:700;margin-bottom:6px">🔑 تغيير رمز المرور</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-bottom:24px">أدخل الرمز الجديد المكون من 4 أرقام</div>
-    
-    <div style="margin-bottom:14px">
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">الرمز الجديد</div>
-      <input id="pin-new-input" type="password" inputmode="numeric" maxlength="4"
-        placeholder="● ● ● ●"
-        style="width:100%;background:var(--bg3);border:1px solid var(--border2);
-        border-radius:var(--radius-sm);color:var(--text-primary);
-        font-size:22px;padding:14px;text-align:center;letter-spacing:8px;
-        outline:none;font-family:'JetBrains Mono',monospace;"
-        oninput="this.style.borderColor=this.value.length==4?'var(--neon-purple)':'var(--border2)'"
-      >
-    </div>
-    
-    <div style="margin-bottom:20px">
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">تأكيد الرمز</div>
-      <input id="pin-confirm-input" type="password" inputmode="numeric" maxlength="4"
-        placeholder="● ● ● ●"
-        style="width:100%;background:var(--bg3);border:1px solid var(--border2);
-        border-radius:var(--radius-sm);color:var(--text-primary);
-        font-size:22px;padding:14px;text-align:center;letter-spacing:8px;
-        outline:none;font-family:'JetBrains Mono',monospace;"
-        oninput="this.style.borderColor=this.value.length==4?'var(--neon-green)':'var(--border2)'"
-        onkeydown="if(event.key==='Enter') savePIN()"
-      >
-    </div>
-    
-    <div id="pin-change-error" style="color:var(--neon-red);font-size:13px;margin-bottom:14px;min-height:18px"></div>
-    
-    <button onclick="savePIN()" style="
-      width:100%;padding:14px;border-radius:var(--radius-md);
-      background:linear-gradient(135deg,#7c3aed,#4f46e5);
-      border:none;color:#fff;font-size:15px;font-weight:600;
-      cursor:pointer;margin-bottom:10px;
-      font-family:'IBM Plex Sans Arabic',sans-serif;
-      box-shadow:0 4px 20px rgba(124,58,237,0.4);
-    ">حفظ الرمز الجديد</button>
-    
-    <button onclick="closePINModal()" style="
-      width:100%;padding:12px;border-radius:var(--radius-md);
-      background:transparent;border:1px solid var(--border);
-      color:var(--text-muted);font-size:13px;cursor:pointer;
-      font-family:'IBM Plex Sans Arabic',sans-serif;
-    ">إلغاء</button>
-  </div>
-</div>
-
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
@@ -1068,66 +928,7 @@ const BANK_ICONS = {
   'الراجحي': '🟢', 'SAB': '🔵', 'STC Bank': '🟣', 'ANB': '🔴', 'غير محدد': '🏦'
 };
 
-// ===== PIN LOGIC =====
-function pinPress(key) {
-  if (key === 'X') { STATE.pinInput = ''; updatePinDots(); return; }
-  if (key === '*') { STATE.pinInput = STATE.pinInput.slice(0,-1); updatePinDots(); return; }
-  if (STATE.pinInput.length >= 4) return;
-  STATE.pinInput += key;
-  updatePinDots();
-  if (STATE.pinInput.length === 4) setTimeout(checkPin, 200);
-}
-
-function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById('d' + i).classList.toggle('filled', i < STATE.pinInput.length);
-  }
-}
-
-function checkPin() {
-  // Always re-read PIN from storage (fixes PWA cache issues)
-  STATE.pin = localStorage.getItem('app_pin') || '1234';
-  if (STATE.pinInput === STATE.pin) {
-    document.getElementById('pin-screen').classList.add('hidden');
-    document.getElementById('app').classList.add('visible');
-    loadData();
-
-    // إذا كان هناك SMS قادم من Tasker — افتح الـ Popup تلقائياً
-    if (STATE.autoOpenSMS && STATE.pendingSMS) {
-      setTimeout(() => {
-        const parsed = parseSMSText(STATE.pendingSMS);
-        if (parsed && !parsed.internal) {
-          showPopup(parsed);
-        } else if (parsed && parsed.internal) {
-          showToast('🔄 تحويل داخلي — تم تجاهله', 'success');
-        } else {
-          showToast('⚠️ الرسالة ليست معاملة مالية', 'error');
-        }
-        STATE.autoOpenSMS = false;
-        STATE.pendingSMS = null;
-        // نظّف الرابط من المتصفح
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }, 600);
-    }
-  } else {
-    document.getElementById('pin-error').classList.add('show');
-    document.getElementById('pin-screen').style.animation = 'shake 0.4s ease';
-    setTimeout(() => {
-      document.getElementById('pin-error').classList.remove('show');
-      document.getElementById('pin-screen').style.animation = '';
-    }, 1500);
-  }
-  STATE.pinInput = '';
-  updatePinDots();
-}
-
-function lockApp() {
-  document.getElementById('pin-screen').classList.remove('hidden');
-  document.getElementById('app').classList.remove('visible');
-  document.getElementById('pin-screen').style.opacity = '1';
-  document.getElementById('pin-screen').style.transform = 'none';
-  document.getElementById('pin-screen').style.pointerEvents = 'all';
-}
+// ===== PIN REMOVED - AUTH VIA TASKER BIOMETRIC =====
 
 // ===== NAVIGATION =====
 function switchView(name) {
@@ -1698,40 +1499,6 @@ function sendWalidReminder() {
 }
 
 // ===== SETTINGS =====
-function changePIN() {
-  // Show inline PIN change modal
-  const modal = document.getElementById('pin-change-modal');
-  modal.classList.add('active');
-  document.getElementById('pin-new-input').value = '';
-  document.getElementById('pin-confirm-input').value = '';
-  document.getElementById('pin-change-error').textContent = '';
-  setTimeout(() => document.getElementById('pin-new-input').focus(), 100);
-}
-
-function closePINModal() {
-  document.getElementById('pin-change-modal').classList.remove('active');
-}
-
-function savePIN() {
-  const newPin = document.getElementById('pin-new-input').value;
-  const confirmPin = document.getElementById('pin-confirm-input').value;
-  const errEl = document.getElementById('pin-change-error');
-  
-  if (!/^\d{4}$/.test(newPin)) {
-    errEl.textContent = '❌ الرمز يجب أن يكون 4 أرقام فقط';
-    return;
-  }
-  if (newPin !== confirmPin) {
-    errEl.textContent = '❌ الرمزان غير متطابقان';
-    return;
-  }
-  
-  STATE.pin = newPin;
-  localStorage.setItem('app_pin', newPin);
-  closePINModal();
-  showToast('✅ تم تغيير رمز المرور بنجاح', 'success');
-}
-
 function setupBalances() {
   const s = prompt(`ادخل رصيد رصيد الراتب (الحالي: ${STATE.balances.salary}):`);
   if (s === null) return;
@@ -1966,37 +1733,27 @@ function viewPeriodDetail(periodId) {
   switchView('transactions');
 }
 
-// ===== KEYBOARD SHORTCUT (Desktop) =====
-document.addEventListener('keydown', e => {
-  if (document.getElementById('pin-screen').style.opacity !== '0' &&
-      !document.getElementById('pin-screen').classList.contains('hidden')) {
-    if (/^\d$/.test(e.key)) pinPress(e.key);
-    if (e.key === 'Backspace') pinPress('*');
-    if (e.key === 'Escape') pinPress('X');
-  }
-});
-
 // ===== INIT =====
 window.addEventListener('load', () => {
-  // Load PIN from storage
-  if (!localStorage.getItem('app_pin')) {
-    localStorage.setItem('app_pin', '1234');
-  }
-  STATE.pin = localStorage.getItem('app_pin');
+  // فتح التطبيق مباشرة بدون PIN (البصمة في Tasker)
+  document.getElementById('app').classList.add('visible');
+  loadData();
 
   // قراءة رسالة SMS من الرابط (Tasker يرسلها هكذا)
   const urlParams = new URLSearchParams(window.location.search);
   const smsFromUrl = urlParams.get('sms');
 
   if (smsFromUrl) {
-    // فك تشفير الرسالة
     const smsText = decodeURIComponent(smsFromUrl);
-
-    // احفظ الرسالة مؤقتاً
-    STATE.pendingSMS = smsText;
-
-    // بعد فتح التطبيق بـ PIN، شغّل الـ Popup تلقائياً
-    STATE.autoOpenSMS = true;
+    setTimeout(() => {
+      const parsed = parseSMSText(smsText);
+      if (parsed && !parsed.internal) {
+        showPopup(parsed);
+      } else if (parsed && parsed.internal) {
+        showToast('🔄 تحويل داخلي — تم تجاهله', 'success');
+      }
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 500);
   }
 });
 </script>
