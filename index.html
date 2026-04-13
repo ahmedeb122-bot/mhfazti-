@@ -221,9 +221,8 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 #app{
   position:fixed;inset:0;z-index:1;
   display:flex;flex-direction:column;
-  opacity:0;transition:opacity 0.5s;
+  opacity:1;
 }
-#app.visible{opacity:1}
 
 /* Top bar */
 .topbar{
@@ -1275,6 +1274,10 @@ function parseSMSInput() {
 
 // ===== DATA LOADING =====
 async function loadData() {
+  // Make sure app is visible
+  const appEl = document.getElementById('app');
+  if (appEl) appEl.style.opacity = '1';
+
   // Load local balances
   const localBal = JSON.parse(localStorage.getItem('balances') || 'null');
   if (localBal) { STATE.balances = localBal; updateBalanceUI(); }
