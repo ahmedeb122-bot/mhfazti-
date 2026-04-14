@@ -770,7 +770,7 @@ async function loadData() {
       saveBalancesLocal(); updateBalanceUI();
     }
     
-    // سحب المعاملات لتحديث القائمة
+   // سحب المعاملات لتحديث القائمة
     const apiTxs = await apiCall('getTransactions', {});
     if (apiTxs && Array.isArray(apiTxs) && apiTxs.length > 0) {
       STATE.transactions = apiTxs;
@@ -779,6 +779,11 @@ async function loadData() {
       renderTransactions('full');
       calcStats();
       loadPeriodsView();
+      
+      // السطران التاليان هما الحل الجذري لمشكلة الأصفار:
+      loadReports(); 
+      loadInvoices(); 
+      
       showToast('✅ تمت المزامنة مع Google Sheets بنجاح', 'success');
     }
   } catch(e) {
