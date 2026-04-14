@@ -512,7 +512,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .empty-state-icon{font-size:40px;margin-bottom:12px;opacity:0.5}
 .empty-state-text{font-size:14px}
 
-
 #pin-change-modal.active { display:flex !important; }
 
 /* ===== ANIMATIONS ===== */
@@ -526,13 +525,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 </head>
 <body>
 
-<!-- BG -->
 <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
 <div class="bg-grid"></div>
 
-<!-- ================================================
-     SMS BLOCKING POPUP
-     ================================================ -->
 <div id="sms-popup">
   <div class="popup-card">
     <div class="popup-header">
@@ -549,7 +544,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       <span id="popup-date">الآن</span>
     </div>
 
-    <!-- Wallet selector -->
     <div class="popup-section">
       <div class="popup-label" id="wallet-label">من أي رصيد؟</div>
       <div class="wallet-btns" id="wallet-btns">
@@ -568,19 +562,16 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-    <!-- Category selector (personal expenses) -->
     <div id="category-section" style="display:none;padding:0 24px;margin-bottom:16px;">
       <div class="popup-label">نوع المصروف الشخصي</div>
       <div id="category-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
     </div>
 
-    <!-- Low balance warning -->
     <div class="balance-warn" id="balance-warn">
       <div id="balance-warn-text">رصيد الرصيد لا يكفي</div>
       <div class="coverage-btns" id="coverage-btns"></div>
     </div>
 
-    <!-- Invoice checkboxes (work only) -->
     <div class="invoice-row" id="invoice-row">
       <div class="invoice-row-title">📄 تتبع الفاتورة</div>
       <div class="chk-row" onclick="toggleCheck('inv1')">
@@ -600,11 +591,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   </div>
 </div>
 
-<!-- ================================================
-     MAIN APP
-     ================================================ -->
 <div id="app">
-  <!-- Top bar -->
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:8px">
       <div class="topbar-logo">💎 محفظتي</div>
@@ -620,13 +607,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     </div>
   </div>
 
-  <!-- Scroll area -->
   <div class="scroll-area" id="scroll-area">
 
-    <!-- ====== VIEW: HOME ====== -->
     <div id="view-home" class="view active">
 
-      <!-- Wallets -->
       <div class="wallets-row fade-up" id="wallets-row">
         <div class="wallet-card purple" onclick="filterByWallet('راتب')">
           <div class="wallet-icon">💼</div>
@@ -648,7 +632,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         </div>
       </div>
 
-      <!-- Stats -->
       <div class="stats-grid fade-up delay-1">
         <div class="stat-card">
           <div class="stat-label">إجمالي وارد (الشهر)</div>
@@ -660,7 +643,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         </div>
       </div>
 
-      <!-- Recent transactions -->
       <div class="fade-up delay-2">
         <div class="section-header">
           <div class="section-title">آخر المعاملات</div>
@@ -674,7 +656,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         </div>
       </div>
 
-      <!-- SMS input -->
       <div class="fade-up delay-3" id="sms-input-section" style="display:none">
         <div class="section-header"><div class="section-title">إدخال رسالة SMS</div></div>
         <div class="sms-input-wrap">
@@ -683,10 +664,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         </div>
       </div>
 
-    </div><!-- /view-home -->
-
-    <!-- ====== VIEW: TRANSACTIONS ====== -->
-    <div id="view-transactions" class="view">
+    </div><div id="view-transactions" class="view">
       <div class="section-header" style="margin-top:8px">
         <div class="section-title">جميع المعاملات</div>
         <div id="tx-filter-label" style="font-size:12px;color:var(--neon-purple)"></div>
@@ -699,7 +677,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-    <!-- ====== VIEW: INVOICES ====== -->
     <div id="view-invoices" class="view">
       <div class="section-header" style="margin-top:8px">
         <div class="section-title">تتبع الفواتير</div>
@@ -712,11 +689,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-    <!-- ====== VIEW: REPORTS ====== -->
     <div id="view-reports" class="view">
       <div style="margin-top:8px">
 
-        <!-- Hadeel summary -->
         <div class="hadeel-card fade-up" id="hadeel-card">
           <div class="hadeel-header">
             <div class="hadeel-avatar">💜</div>
@@ -748,7 +723,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           </button>
         </div>
 
-        <!-- Walid section -->
         <div class="section-header">
           <div class="section-title">متابعة وليد (السائق)</div>
         </div>
@@ -771,7 +745,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           </div>
         </div>
 
-        <!-- Internal loans -->
         <div class="section-header">
           <div class="section-title">الاستدانة الداخلية</div>
         </div>
@@ -785,7 +758,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-    <!-- ====== VIEW: SETTINGS ====== -->
     <div id="view-settings" class="view">
       <div style="margin-top:8px">
         <div class="section-title" style="margin-bottom:16px">الإعدادات</div>
@@ -834,11 +806,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-    <!-- ====== VIEW: PERIODS ====== -->
     <div id="view-periods" class="view">
       <div style="margin-top:8px">
 
-        <!-- Current period -->
         <div id="current-period-card" style="
           padding:18px;border-radius:var(--radius-lg);margin-bottom:20px;
           background:linear-gradient(135deg,rgba(167,139,250,0.15),rgba(96,165,250,0.1));
@@ -855,7 +825,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           ">🔒 إغلاق هذه الفترة وبدء فترة جديدة</button>
         </div>
 
-        <!-- New period button -->
         <button onclick="newPeriod()" style="
           width:100%;padding:14px;border-radius:var(--radius-md);margin-bottom:20px;
           background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(79,70,229,0.3));
@@ -864,7 +833,6 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           font-family:'IBM Plex Sans Arabic',sans-serif;
         ">＋ فترة جديدة (شهر / سنة / مخصص)</button>
 
-        <!-- Past periods -->
         <div class="section-title" style="margin-bottom:12px">الفترات السابقة</div>
         <div id="periods-list">
           <div class="empty-state">
@@ -875,10 +843,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
-  </div><!-- /scroll-area -->
-
-  <!-- Bottom nav -->
-  <div class="bottom-nav">
+  </div><div class="bottom-nav">
     <button class="nav-btn active" id="nav-home" onclick="switchView('home')">
       <span class="nav-btn-icon">🏠</span>الرئيسية
     </button>
@@ -900,13 +865,8 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   </div>
 </div>
 
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<!-- ================================================
-     JAVASCRIPT
-     ================================================ -->
 <script>
 // ===== CONFIG =====
 const API_URL = 'https://script.google.com/macros/s/AKfycbwC4v4jbQmCwzxvbMjqOiIOfvaaLAXLoNBzOougxsbekBMgHKT782chFs1gJzQgUG4/exec';
@@ -1138,17 +1098,17 @@ function showCategorySelector() {
   ];
   const btns = document.getElementById('category-btns');
   btns.innerHTML = categories.map(c =>
-    \`<button onclick="selectCategory('\${c.label}')" style="
+    `<button onclick="selectCategory('${c.label}')" style="
       padding:10px 8px;border-radius:var(--radius-sm);
       background:var(--glass);border:1px solid var(--border);
       color:var(--text-secondary);font-size:12px;font-weight:500;
       cursor:pointer;transition:all 0.15s;text-align:center;
       font-family:'IBM Plex Sans Arabic',sans-serif;
       display:flex;flex-direction:column;align-items:center;gap:4px;
-    " id="cat-\${c.label}">
-      <span style="font-size:18px">\${c.icon}</span>
-      <span>\${c.label}</span>
-    </button>\`
+    " id="cat-${c.label}">
+      <span style="font-size:18px">${c.icon}</span>
+      <span>${c.label}</span>
+    </button>`
   ).join('');
   document.getElementById('category-section').style.display = 'block';
 }
