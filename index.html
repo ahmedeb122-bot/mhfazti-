@@ -551,7 +551,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 
     <!-- Wallet selector -->
     <div class="popup-section">
-      <div class="popup-label">من أي رصيد؟</div>
+      <div class="popup-label" id="wallet-label">من أي رصيد؟</div>
       <div class="wallet-btns" id="wallet-btns">
         <button class="wallet-btn" onclick="selectWallet('راتب')" id="wb-salary">
           💼 راتب
@@ -568,6 +568,12 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       </div>
     </div>
 
+    <!-- Category selector (personal expenses) -->
+    <div id="category-section" style="display:none;padding:0 24px;margin-bottom:16px;">
+      <div class="popup-label">نوع المصروف الشخصي</div>
+      <div id="category-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+
     <!-- Low balance warning -->
     <div class="balance-warn" id="balance-warn">
       <div id="balance-warn-text">رصيد الرصيد لا يكفي</div>
@@ -578,7 +584,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     <div class="invoice-row" id="invoice-row">
       <div class="invoice-row-title">📄 تتبع الفاتورة</div>
       <div class="chk-row" onclick="toggleCheck('inv1')">
-        <div class="chk-box" id="inv1">✓</div>
+        <div class="chk-box" id="inv1"></div>
         <div class="chk-label">استلمت الفاتورة من السائق / المتجر</div>
       </div>
       <div class="chk-row" onclick="toggleCheck('inv2')">
