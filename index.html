@@ -909,17 +909,47 @@ const HADEEL_WHATSAPP = '00249998451318'; // ضع رقم واتساب هديل �
 const WALID_WHATSAPP = '00966539635310'; // ضع رقم واتساب وليد هنا
 
 // ===== STATE =====
+// قراءة آمنة من localStorage
+function safeGet(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    if (val === null || val === undefined) return fallback;
+    return val;
+  } catch(e) { return fallback; }
+}
+
+function safeGetJSON(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    if (!val) return fallback;
+    return JSON.parse(val);
+  } catch(e) {
+    try { localStorage.removeItem(key); } catch(e2) {}
+    return fallback;
+  }
+}
+
+function safeSave(key, value) {
+  try { localStorage.setItem(key, value); } catch(e) {}
+}
+
 let STATE = {
-  pin: localStorage.getItem('app_pin') || '1234',
   pinInput: '',
-  balances: { salary: 0, work: 0, hadeel: 0 },
-  transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
+  balances: safeGetJSON('balances', { salary: 0, work: 0, hadeel: 0 }),
+  transactions: safeGetJSON('transactions', []),
+  periods: safeGetJSON('periods', []),
   currentPopup: null,
   selectedWallet: '',
+  selectedCategory: '',
   inv1Checked: false,
   inv2Checked: false,
   currentView: 'home',
-  currentPeriod: 'month'
+  currentPeriod: 'month',
+  activePeriod: null,
+  autoOpenSMS: false,
+  pendingSMS: null,
+  coverageWallet: null,
+  coverageAmount: 0
 };
 
 // ===== BANK ICONS =====
@@ -1207,7 +1237,7 @@ async function saveFromPopup() {
 
   // Save locally first
   STATE.transactions.unshift(tx);
-  localStorage.setItem('transactions', JSON.stringify(STATE.transactions));
+  safeSave('transactions', JSON.stringify(STATE.transactions));
 
   // Update local balances
   if (tx.type === 'وارد') {
@@ -1279,7 +1309,7 @@ async function loadData() {
   if (appEl) appEl.style.opacity = '1';
 
   // Load local balances
-  const localBal = JSON.parse(localStorage.getItem('balances') || 'null');
+  const localBal = safeGetJSON('balances', null);
   if (localBal) { STATE.balances = localBal; updateBalanceUI(); }
 
   // Try fetching from API
@@ -1302,7 +1332,7 @@ function updateBalanceUI() {
 }
 
 function saveBalancesLocal() {
-  localStorage.setItem('balances', JSON.stringify(STATE.balances));
+  safeSave('balances', JSON.stringify(STATE.balances));
 }
 
 // ===== RENDER TRANSACTIONS =====
@@ -1394,7 +1424,7 @@ function loadInvoices() {
 
 function toggleInvoice(idx, field) {
   STATE.transactions[idx][field] = !STATE.transactions[idx][field];
-  localStorage.setItem('transactions', JSON.stringify(STATE.transactions));
+  safeSave('transactions', JSON.stringify(STATE.transactions));
   // Try syncing to API
   apiCall('updateInvoice', { rowIndex: idx, field, value: STATE.transactions[idx][field] }).catch(() => {});
   loadInvoices();
@@ -1580,7 +1610,7 @@ function showToast(msg, type = 'success') {
 
 // ===== PERIOD SYSTEM =====
 function initPeriods() {
-  let periods = JSON.parse(localStorage.getItem('periods') || '[]');
+  let periods = safeGetJSON('periods', []);
   
   // If no periods, create first one automatically
   if (!periods.length) {
@@ -1593,7 +1623,7 @@ function initPeriods() {
       end: null,
       active: true
     });
-    localStorage.setItem('periods', JSON.stringify(periods));
+    safeSave('periods', JSON.stringify(periods));
   }
   
   STATE.periods = periods;
@@ -1684,7 +1714,7 @@ function closePeriod() {
     active: true
   });
   
-  localStorage.setItem('periods', JSON.stringify(periods));
+  safeSave('periods', JSON.stringify(periods));
   STATE.activePeriod = periods[periods.length - 1];
   updatePeriodBadge();
   loadPeriodsView();
@@ -1719,7 +1749,7 @@ function newPeriod() {
     active: true
   });
   
-  localStorage.setItem('periods', JSON.stringify(periods));
+  safeSave('periods', JSON.stringify(periods));
   STATE.activePeriod = periods[periods.length - 1];
   updatePeriodBadge();
   loadPeriodsView();
