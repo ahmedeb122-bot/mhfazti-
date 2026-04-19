@@ -6,79 +6,119 @@
 <title>محفظتي — النظام المالي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="محفظتي">
 <style>
+/* ===== RESET & BASE ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;background:#05060f}
 body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;line-height:1.6}
+
+/* ===== CSS VARIABLES ===== */
 :root{
-  --bg0:#05060f;--bg1:#0a0c1a;--bg2:#0f1124;--bg3:#161830;
-  --glass:rgba(255,255,255,0.04);--glass2:rgba(255,255,255,0.07);
-  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.13);
-  --neon-purple:#a78bfa;--neon-blue:#60a5fa;--neon-green:#34d399;
-  --neon-amber:#fbbf24;--neon-red:#f87171;--neon-pink:#f472b6;
-  --purple-dim:rgba(167,139,250,0.15);--blue-dim:rgba(96,165,250,0.15);
-  --green-dim:rgba(52,211,153,0.15);--amber-dim:rgba(251,191,36,0.15);
+  --bg0:#05060f;
+  --bg1:#0a0c1a;
+  --bg2:#0f1124;
+  --bg3:#161830;
+  --glass:rgba(255,255,255,0.04);
+  --glass2:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.13);
+
+  --neon-purple:#a78bfa;
+  --neon-blue:#60a5fa;
+  --neon-green:#34d399;
+  --neon-amber:#fbbf24;
+  --neon-red:#f87171;
+  --neon-pink:#f472b6;
+
+  --purple-dim:rgba(167,139,250,0.15);
+  --blue-dim:rgba(96,165,250,0.15);
+  --green-dim:rgba(52,211,153,0.15);
+  --amber-dim:rgba(251,191,36,0.15);
   --red-dim:rgba(248,113,113,0.15);
-  --text-primary:#e8eaf6;--text-secondary:#8b90b8;--text-muted:#4a4f72;
-  --radius-sm:8px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;
+
+  --text-primary:#e8eaf6;
+  --text-secondary:#8b90b8;
+  --text-muted:#4a4f72;
+
+  --radius-sm:8px;
+  --radius-md:14px;
+  --radius-lg:20px;
+  --radius-xl:28px;
 }
+
+/* ===== BACKGROUND EFFECTS ===== */
 .bg-orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.18;animation:orbFloat 12s ease-in-out infinite alternate}
 .orb1{width:500px;height:500px;background:radial-gradient(circle,#7c3aed,transparent);top:-150px;right:-100px;animation-duration:14s}
 .orb2{width:400px;height:400px;background:radial-gradient(circle,#1d4ed8,transparent);bottom:-100px;left:-80px;animation-duration:10s;animation-delay:-5s}
 .orb3{width:300px;height:300px;background:radial-gradient(circle,#065f46,transparent);top:40%;left:30%;animation-duration:16s;animation-delay:-8s}
 @keyframes orbFloat{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,20px) scale(1.1)}}
+
 .bg-grid{position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(255,255,255,0.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,0.015) 1px,transparent 1px);
   background-size:40px 40px}
+
+.glass{background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius-lg);}
+.glass-strong{background:var(--glass2);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border:1px solid var(--border2);border-radius:var(--radius-lg);}
+
 ::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
-/* ===== شاشة القفل ===== */
-#smart-lock{
+/* ===== شارة الرسائل المعلقة ===== */
+#pending-badge{
+  position:fixed;top:12px;left:50%;transform:translateX(-50%);
+  z-index:500;padding:10px 20px;border-radius:30px;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  color:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  box-shadow:0 4px 20px rgba(124,58,237,0.5);
+  display:none;animation:pendingPulse 2s ease-in-out infinite;white-space:nowrap;
+}
+@keyframes pendingPulse{0%,100%{box-shadow:0 4px 20px rgba(124,58,237,0.5)}50%{box-shadow:0 4px 35px rgba(124,58,237,0.9)}}
+
+/* ===== تحذير التكرار في البوب اب ===== */
+.dup-warning{
+  margin:0 24px 16px;padding:12px 14px;border-radius:var(--radius-sm);
+  background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);
+  font-size:13px;color:var(--neon-red);display:none;
+}
+
+/* ===== SMART LOCK SCREEN ===== */
+#smart-lock {
   position:fixed;inset:0;z-index:9999;background:var(--bg0);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
 }
-.lock-box{
-  background:var(--bg1);padding:36px 28px;border-radius:var(--radius-lg);
+.lock-box {
+  background:var(--bg1);padding:30px;border-radius:var(--radius-lg);
   border:1px solid var(--border);text-align:center;width:90%;max-width:320px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.6);
+  box-shadow:0 10px 30px rgba(0,0,0,0.5);
 }
-/* لوحة مفاتيح مخصصة - سهلة الاستخدام */
-.pin-display{
-  display:flex;gap:14px;justify-content:center;margin:20px 0;
+.pin-input {
+  width:100%;padding:15px;margin:20px 0;border-radius:var(--radius-sm);
+  background:var(--bg3);border:1px solid var(--border);color:#fff;
+  font-size:24px;text-align:center;letter-spacing:10px;font-family:monospace;
 }
-.pin-dot{
-  width:18px;height:18px;border-radius:50%;border:2px solid var(--border2);
-  transition:all 0.2s;
-}
-.pin-dot.filled{background:var(--neon-purple);border-color:var(--neon-purple);box-shadow:0 0 10px rgba(167,139,250,0.5);}
-.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
-.numpad-btn{
-  padding:18px 10px;border-radius:var(--radius-md);background:var(--glass);
-  border:1px solid var(--border);color:var(--text-primary);font-size:20px;font-weight:600;
-  cursor:pointer;transition:all 0.15s;font-family:'JetBrains Mono',monospace;
-}
-.numpad-btn:active{background:var(--purple-dim);border-color:var(--neon-purple);transform:scale(0.94);}
-.numpad-btn.del{font-size:16px;color:var(--text-secondary);}
-.numpad-btn.empty{background:transparent;border-color:transparent;pointer-events:none;}
-.lock-error{color:var(--neon-red);font-size:13px;margin-top:10px;height:20px;transition:all 0.3s;}
+.pin-input:focus { outline:none;border-color:var(--neon-purple); }
 
-/* ===== النافذة المنبثقة (Popup) ===== */
+/* ===================================================
+   BLOCKING SMS POPUP
+   =================================================== */
 #sms-popup{
   position:fixed;inset:0;z-index:999;background:rgba(5,6,15,0.95);
   backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
   padding:16px;opacity:0;pointer-events:none;transition:opacity 0.3s;
 }
 #sms-popup.active{opacity:1;pointer-events:all}
-
-/* ⚠️ منع إغلاق البوب اب بزر الرجوع — يتم في الجافاسكريبت */
-
 .popup-card{
   width:100%;max-width:420px;background:var(--bg2);
   border:1px solid var(--border2);border-radius:var(--radius-xl);
-  overflow:hidden;overflow-y:auto;max-height:92vh;
-  animation:popupIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  overflow:hidden;animation:popupIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
 }
 @keyframes popupIn{from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
 .popup-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
@@ -115,25 +155,25 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .btn-save:active{transform:scale(0.98)}
 .btn-save:disabled{opacity:0.5;cursor:not-allowed}
 .btn-skip{padding:12px;border-radius:var(--radius-md);background:transparent;border:1px solid var(--border);color:var(--text-muted);font-size:13px;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;transition:all 0.2s;}
+.btn-skip:hover{border-color:var(--border2);color:var(--text-secondary)}
 
-/* مؤشر "رسالة معلقة" في أعلى الشاشة */
-#pending-badge{
-  position:fixed;top:10px;left:50%;transform:translateX(-50%);
-  z-index:500;padding:10px 20px;border-radius:30px;
-  background:linear-gradient(135deg,#7c3aed,#4f46e5);
-  color:#fff;font-size:14px;font-weight:600;cursor:pointer;
-  box-shadow:0 4px 20px rgba(124,58,237,0.5);
-  display:none;animation:pulse 2s ease-in-out infinite;
+/* ===================================================
+   MAIN APP LAYOUT
+   =================================================== */
+#app {
+  position:fixed;inset:0;z-index:1;
+  display:flex;flex-direction:column;
+  opacity:0; pointer-events:none; transition:opacity 0.3s;
 }
-@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(124,58,237,0.5)}50%{box-shadow:0 4px 35px rgba(124,58,237,0.9)}}
+#app.visible {
+  opacity:1; pointer-events:all;
+}
 
-/* ===== التطبيق الرئيسي ===== */
-#app{position:fixed;inset:0;z-index:1;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity 0.3s;}
-#app.visible{opacity:1;pointer-events:all;}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;flex-shrink:0;background:linear-gradient(to bottom,var(--bg1),transparent);position:relative;z-index:10;}
 .topbar-logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .topbar-actions{display:flex;gap:10px}
 .icon-btn{width:38px;height:38px;border-radius:10px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;}
+.icon-btn:hover{background:var(--glass2);border-color:var(--border2)}
 .scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 100px;position:relative;z-index:1;}
 .wallets-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .wallet-card{padding:14px 12px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);position:relative;overflow:hidden;cursor:pointer;transition:all 0.2s;}
@@ -152,9 +192,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .wallet-currency{font-size:10px;color:var(--text-muted)}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .section-title{font-size:14px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;}
-.section-action{font-size:12px;color:var(--neon-purple);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--purple-dim);background:var(--purple-dim);}
+.section-action{font-size:12px;color:var(--neon-purple);cursor:pointer;padding:4px 10px;border-radius:6px;border:1px solid var(--purple-dim);background:var(--purple-dim);transition:all 0.2s;}
 .tx-list{display:flex;flex-direction:column;gap:6px;margin-bottom:24px}
 .tx-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);transition:all 0.2s;cursor:pointer;}
+.tx-item:hover{background:var(--glass2);border-color:var(--border2)}
 .tx-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .tx-icon.income{background:var(--green-dim)}
 .tx-icon.expense{background:var(--red-dim)}
@@ -171,30 +212,31 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .tx-invoice-flags{display:flex;gap:4px;margin-top:4px}
 .inv-flag{width:8px;height:8px;border-radius:50%;background:var(--text-muted);}
 .inv-flag.done{background:var(--neon-green)}
-.invoice-card{padding:14px 16px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:8px;}
+.inv-flag.pending{background:var(--neon-amber)}
+.invoice-card{padding:14px 16px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:8px;transition:all 0.2s;}
 .invoice-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .invoice-merchant{font-size:14px;font-weight:600}
 .invoice-amount{font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--neon-amber)}
 .invoice-date{font-size:12px;color:var(--text-muted);margin-bottom:10px}
 .invoice-checks{display:flex;gap:10px}
-.inv-check{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;}
+.inv-check{flex:1;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:all 0.2s;}
 .inv-check.done{background:rgba(52,211,153,0.08);border-color:rgba(52,211,153,0.3)}
 .inv-check-icon{font-size:14px}
 .inv-check-label{font-size:12px;color:var(--text-secondary)}
 .sms-input-wrap{padding:14px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:24px;}
-.sms-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;padding:12px;resize:none;height:90px;line-height:1.6;outline:none;direction:rtl;}
-.sms-parse-btn{width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(79,70,229,0.3));border:1px solid rgba(124,58,237,0.4);border-radius:var(--radius-sm);color:var(--neon-purple);font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;}
+.sms-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text-primary);font-family:'IBM Plex Sans Arabic',sans-serif;font-size:13px;padding:12px;resize:none;height:90px;line-height:1.6;transition:border-color 0.2s;outline:none;direction:rtl;}
+.sms-parse-btn{width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(79,70,229,0.3));border:1px solid rgba(124,58,237,0.4);border-radius:var(--radius-sm);color:var(--neon-purple);font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;transition:all 0.2s;}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;padding:10px 20px 20px;gap:8px;background:linear-gradient(to top,var(--bg0) 60%,transparent);}
 .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border-radius:var(--radius-md);background:transparent;border:none;cursor:pointer;color:var(--text-muted);font-family:'IBM Plex Sans Arabic',sans-serif;transition:all 0.2s;font-size:11px;}
 .nav-btn.active{background:var(--glass);color:var(--neon-purple);}
 .nav-btn-icon{font-size:22px;line-height:1}
+.nav-btn.active .nav-btn-icon{filter:drop-shadow(0 0 6px var(--neon-purple))}
 .view{display:none}
 .view.active{display:block}
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-10px);z-index:2000;padding:12px 20px;border-radius:var(--radius-md);background:var(--bg2);border:1px solid var(--border2);font-size:14px;font-weight:500;white-space:nowrap;opacity:0;transition:all 0.3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:rgba(52,211,153,0.4);color:var(--neon-green)}
 .toast.error{border-color:rgba(248,113,113,0.4);color:var(--neon-red)}
-.toast.warn{border-color:rgba(251,191,36,0.4);color:var(--neon-amber)}
 .loader-spin{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--neon-purple);border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
@@ -209,10 +251,15 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .hadeel-net.neg{color:var(--neon-red)}
 .hadeel-row{display:flex;justify-content:space-between;font-size:13px;margin-top:8px}
 .walid-card{padding:16px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:10px;}
+.walid-pending-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.walid-pending-item:last-child{border-bottom:none}
+.walid-date{color:var(--text-secondary)}
+.walid-amount{font-family:'JetBrains Mono',monospace;color:var(--neon-amber);font-weight:600}
 .period-tabs{display:flex;gap:6px;margin-bottom:16px}
-.period-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--glass);border:1px solid var(--border);cursor:pointer;color:var(--text-secondary);font-family:'IBM Plex Sans Arabic',sans-serif;}
+.period-tab{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:500;background:var(--glass);border:1px solid var(--border);cursor:pointer;transition:all 0.2s;color:var(--text-secondary);font-family:'IBM Plex Sans Arabic',sans-serif;}
 .period-tab.active{background:var(--purple-dim);border-color:var(--neon-purple);color:var(--neon-purple);}
-.settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;}
+.settings-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:8px;cursor:pointer;transition:all 0.2s;}
+.settings-item:hover{background:var(--glass2);border-color:var(--border2)}
 .settings-item-label{font-size:14px;font-weight:500}
 .settings-item-sub{font-size:12px;color:var(--text-secondary);margin-top:2px}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
@@ -223,50 +270,26 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .delay-1{animation-delay:0.05s}
 .delay-2{animation-delay:0.1s}
 .delay-3{animation-delay:0.15s}
-/* مؤشر التكرار */
-.dup-warning{margin:0 24px 16px;padding:12px 14px;border-radius:var(--radius-sm);background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);font-size:13px;color:var(--neon-red);}
+.delay-4{animation-delay:0.2s}
 </style>
 </head>
 <body>
+
 <div class="bg-orbs"><div class="orb orb1"></div><div class="orb orb2"></div><div class="orb orb3"></div></div>
 <div class="bg-grid"></div>
 
-<!-- ✅ إصلاح #1: لوحة مفاتيح مخصصة — بدون بصمة، بدون لوحة النظام -->
 <div id="smart-lock">
   <div class="lock-box">
-    <div style="font-size:44px;margin-bottom:8px">🔐</div>
-    <div style="font-size:18px;font-weight:600">محفظتي</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px;">أدخل الرقم السري</div>
-    <div class="pin-display">
-      <div class="pin-dot" id="dot0"></div>
-      <div class="pin-dot" id="dot1"></div>
-      <div class="pin-dot" id="dot2"></div>
-      <div class="pin-dot" id="dot3"></div>
-    </div>
-    <div class="numpad" id="numpad">
-      <button class="numpad-btn" onclick="pinPress('1')">1</button>
-      <button class="numpad-btn" onclick="pinPress('2')">2</button>
-      <button class="numpad-btn" onclick="pinPress('3')">3</button>
-      <button class="numpad-btn" onclick="pinPress('4')">4</button>
-      <button class="numpad-btn" onclick="pinPress('5')">5</button>
-      <button class="numpad-btn" onclick="pinPress('6')">6</button>
-      <button class="numpad-btn" onclick="pinPress('7')">7</button>
-      <button class="numpad-btn" onclick="pinPress('8')">8</button>
-      <button class="numpad-btn" onclick="pinPress('9')">9</button>
-      <button class="numpad-btn empty"></button>
-      <button class="numpad-btn" onclick="pinPress('0')">0</button>
-      <button class="numpad-btn del" onclick="pinDel()">⌫</button>
-    </div>
-    <div class="lock-error" id="lock-error"></div>
+    <div style="font-size:40px;margin-bottom:10px">🔒</div>
+    <div style="font-size:18px;font-weight:600">النظام المالي محمي</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:5px;">أدخل رمز المرور للوصول الآمن</div>
+    <input type="password" id="pin-code" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric">
+    <button onclick="checkPin()" class="btn-save" style="width:100%">فتح النظام</button>
   </div>
 </div>
 
-<!-- ✅ إصلاح #3: مؤشر الرسائل المعلقة — يظهر حتى لو كانت الشاشة مقفلة وفُتحت لاحقاً -->
-<div id="pending-badge" onclick="processPendingQueue()">
-  📩 <span id="pending-count">0</span> رسالة معلقة — اضغط للمعالجة
-</div>
+<div id="pending-badge" onclick="processPendingQueue()">📩 <span id="pending-count">0</span> رسالة معلقة — اضغط للمعالجة</div>
 
-<!-- النافذة المنبثقة -->
 <div id="sms-popup">
   <div class="popup-card">
     <div class="popup-header">
@@ -276,21 +299,18 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         <div class="popup-tx-type" id="popup-tx-type">معاملة جديدة</div>
       </div>
     </div>
-    <!-- ✅ إصلاح #4: مؤشر التكرار -->
-    <div class="dup-warning" id="dup-warning" style="display:none">
-      ⚠️ <strong>تحذير:</strong> هذه العملية تبدو مكررة (نفس المبلغ والتاريخ). هل أنت متأكد من الحفظ؟
-    </div>
     <div class="popup-amount" id="popup-amount">0 SAR</div>
     <div class="popup-meta">
       <span id="popup-merchant" class="popup-merchant">—</span>
       <span id="popup-date">الآن</span>
     </div>
+    <div class="dup-warning" id="dup-warning">⚠️ <strong>تحذير:</strong> يبدو أن هذه العملية مكررة (نفس المبلغ والبنك خلال 5 دقائق). يمكنك الحفظ إذا كنت متأكداً.</div>
     <div class="popup-section">
       <div class="popup-label" id="wallet-label">من أي رصيد؟</div>
       <div class="wallet-btns" id="wallet-btns">
-        <button class="wallet-btn" onclick="selectWallet('راتب')" id="wb-salary">💼 راتب<span class="wbal" id="wb-sal-bal">0</span></button>
-        <button class="wallet-btn" onclick="selectWallet('عهدة')" id="wb-work">🏗️ عهدة<span class="wbal" id="wb-work-bal">0</span></button>
-        <button class="wallet-btn" onclick="selectWallet('هديل')" id="wb-hadeel">💜 هديل<span class="wbal" id="wb-had-bal">0</span></button>
+        <button class="wallet-btn" onclick="selectWallet('راتب')" id="wb-salary">💼 راتب<span class="wbal" id="wb-sal-bal">0 SAR</span></button>
+        <button class="wallet-btn" onclick="selectWallet('عهدة')" id="wb-work">🏗️ عهدة<span class="wbal" id="wb-work-bal">0 SAR</span></button>
+        <button class="wallet-btn" onclick="selectWallet('هديل')" id="wb-hadeel">💜 هديل<span class="wbal" id="wb-had-bal">0 SAR</span></button>
       </div>
     </div>
     <div id="category-section" style="display:none;padding:0 24px;margin-bottom:16px;">
@@ -298,7 +318,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       <div id="category-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
     </div>
     <div class="balance-warn" id="balance-warn">
-      <div id="balance-warn-text"></div>
+      <div id="balance-warn-text">رصيد الرصيد لا يكفي</div>
       <div class="coverage-btns" id="coverage-btns"></div>
     </div>
     <div class="invoice-row" id="invoice-row">
@@ -313,39 +333,52 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   </div>
 </div>
 
-<!-- التطبيق الرئيسي -->
 <div id="app">
   <div class="topbar">
     <div style="display:flex;align-items:center;gap:8px">
       <div class="topbar-logo">💎 محفظتي</div>
-      <div id="period-badge" onclick="switchView('periods')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--purple-dim);border:1px solid var(--neon-purple);color:var(--neon-purple);cursor:pointer;">...</div>
+      <div id="period-badge" onclick="switchView('periods')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--purple-dim);border:1px solid var(--neon-purple);color:var(--neon-purple);cursor:pointer;white-space:nowrap;">...</div>
     </div>
     <div class="topbar-actions">
       <div class="icon-btn" onclick="showSMSInput()" title="إدخال SMS">📩</div>
-      <div class="icon-btn" onclick="lockApp()" title="قفل">🔒</div>
+      <div class="icon-btn" onclick="location.reload()" title="قفل">🔒</div>
     </div>
   </div>
 
   <div class="scroll-area" id="scroll-area">
     <div id="view-home" class="view active">
-      <div class="wallets-row fade-up">
+      <div class="wallets-row fade-up" id="wallets-row">
         <div class="wallet-card purple" onclick="filterByWallet('راتب')">
-          <div class="wallet-icon">💼</div><div class="wallet-name">الراتب</div>
-          <div class="wallet-bal purple" id="bal-salary">...</div><div class="wallet-currency">SAR</div>
+          <div class="wallet-icon">💼</div>
+          <div class="wallet-name">الراتب</div>
+          <div class="wallet-bal purple" id="bal-salary">...</div>
+          <div class="wallet-currency">SAR</div>
         </div>
         <div class="wallet-card blue" onclick="filterByWallet('عهدة')">
-          <div class="wallet-icon">🏗️</div><div class="wallet-name">العهدة</div>
-          <div class="wallet-bal blue" id="bal-work">...</div><div class="wallet-currency">SAR</div>
+          <div class="wallet-icon">🏗️</div>
+          <div class="wallet-name">العهدة</div>
+          <div class="wallet-bal blue" id="bal-work">...</div>
+          <div class="wallet-currency">SAR</div>
         </div>
         <div class="wallet-card pink" onclick="filterByWallet('هديل')">
-          <div class="wallet-icon">💜</div><div class="wallet-name">هديل</div>
-          <div class="wallet-bal pink" id="bal-hadeel">...</div><div class="wallet-currency">SAR</div>
+          <div class="wallet-icon">💜</div>
+          <div class="wallet-name">هديل</div>
+          <div class="wallet-bal pink" id="bal-hadeel">...</div>
+          <div class="wallet-currency">SAR</div>
         </div>
       </div>
+
       <div class="stats-grid fade-up delay-1">
-        <div class="stat-card"><div class="stat-label">وارد (الشهر)</div><div class="stat-value" style="color:var(--neon-green)" id="stat-income">—</div></div>
-        <div class="stat-card"><div class="stat-label">صادر (الشهر)</div><div class="stat-value" style="color:var(--neon-red)" id="stat-expense">—</div></div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي وارد (الشهر)</div>
+          <div class="stat-value" style="color:var(--neon-green)" id="stat-income">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">إجمالي صادر (الشهر)</div>
+          <div class="stat-value" style="color:var(--neon-red)" id="stat-expense">—</div>
+        </div>
       </div>
+
       <div class="fade-up delay-2">
         <div class="section-header">
           <div class="section-title">آخر المعاملات</div>
@@ -355,6 +388,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <div class="empty-state"><div class="empty-state-icon">🌙</div><div class="empty-state-text">لا توجد معاملات بعد<br>ألصق رسالة SMS للبدء</div></div>
         </div>
       </div>
+
       <div class="fade-up delay-3" id="sms-input-section" style="display:none">
         <div class="section-header"><div class="section-title">إدخال رسالة SMS</div></div>
         <div class="sms-input-wrap">
@@ -369,17 +403,21 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
         <div class="section-title">جميع المعاملات</div>
         <div id="tx-filter-label" style="font-size:12px;color:var(--neon-purple)"></div>
       </div>
-      <div class="tx-list" id="tx-list-full"></div>
+      <div class="tx-list" id="tx-list-full">
+        <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">لا توجد معاملات محفوظة</div></div>
+      </div>
     </div>
 
     <div id="view-invoices" class="view">
       <div class="section-header" style="margin-top:8px"><div class="section-title">تتبع الفواتير</div></div>
-      <div id="invoices-list"></div>
+      <div id="invoices-list">
+        <div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">لا توجد فواتير معلقة</div></div>
+      </div>
     </div>
 
     <div id="view-reports" class="view">
       <div style="margin-top:8px">
-        <div class="hadeel-card fade-up">
+        <div class="hadeel-card fade-up" id="hadeel-card">
           <div class="hadeel-header">
             <div class="hadeel-avatar">💜</div>
             <div><div style="font-size:15px;font-weight:600">تقرير هديل</div><div style="font-size:12px;color:var(--text-secondary)">الموقف المالي الصافي</div></div>
@@ -394,13 +432,14 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <div class="hadeel-row"><span>إجمالي المصروفات</span><span id="hadeel-expense" style="color:var(--neon-red)">0 SAR</span></div>
           <button onclick="sendHadeelWhatsapp()" style="width:100%;margin-top:16px;padding:12px;border-radius:var(--radius-sm);background:rgba(37,211,102,0.15);border:1px solid rgba(37,211,102,0.3);color:#25d166;font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;">📤 إرسال لهديل عبر واتساب</button>
         </div>
+
         <div class="section-header"><div class="section-title">متابعة وليد (السائق)</div></div>
         <div class="walid-card fade-up delay-1">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <div style="font-size:14px;font-weight:600">مبالغ بدون فاتورة</div>
             <button onclick="sendWalidReminder()" style="padding:7px 14px;border-radius:8px;background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);color:var(--neon-blue);font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;">📲 تذكير واتساب</button>
           </div>
-          <div id="walid-list"></div>
+          <div id="walid-list"><div class="empty-state" style="padding:20px 0"><div class="empty-state-icon" style="font-size:24px">✅</div><div class="empty-state-text">جميع المبالغ لها فواتير</div></div></div>
         </div>
       </div>
     </div>
@@ -408,11 +447,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     <div id="view-settings" class="view">
       <div style="margin-top:8px">
         <div class="section-title" style="margin-bottom:16px">الإعدادات</div>
-        <div class="settings-item" onclick="setupBalances()"><div><div class="settings-item-label">💰 ضبط الأرصدة</div><div class="settings-item-sub">تحديث أرصدة الأوعية يدوياً</div></div><div>›</div></div>
-        <div class="settings-item" onclick="openSheets()"><div><div class="settings-item-label">📊 فتح Google Sheets</div><div class="settings-item-sub">عرض قاعدة البيانات مباشرة</div></div><div>›</div></div>
-        <div class="settings-item" onclick="testAPI()"><div><div class="settings-item-label">🔌 المزامنة مع السيرفر</div><div class="settings-item-sub" id="api-status">تحقق من التزامن مع قوقل شيت</div></div><div>›</div></div>
-        <div class="settings-item" onclick="clearPending()"><div><div class="settings-item-label">🗑️ مسح الرسائل المعلقة</div><div class="settings-item-sub" id="pending-status">لا توجد رسائل معلقة</div></div><div>›</div></div>
-        <div class="settings-item" onclick="changePin()"><div><div class="settings-item-label">🔑 تغيير الرقم السري</div><div class="settings-item-sub">تغيير رمز المرور</div></div><div>›</div></div>
+        <div class="settings-item" onclick="setupBalances()"><div><div class="settings-item-label">💰 ضبط الأرصدة</div><div class="settings-item-sub">تحديث أرصدة الأرصدة يدوياً</div></div><div class="settings-item-arrow">›</div></div>
+        <div class="settings-item" onclick="openSheets()"><div><div class="settings-item-label">📊 فتح Google Sheets</div><div class="settings-item-sub">عرض قاعدة البيانات مباشرة</div></div><div class="settings-item-arrow">›</div></div>
+        <div class="settings-item" onclick="testAPI()"><div><div class="settings-item-label">🔌 المزامنة مع السيرفر</div><div class="settings-item-sub" id="api-status">تحقق من التزامن مع قوقل شيت</div></div><div class="settings-item-arrow">›</div></div>
       </div>
     </div>
 
@@ -424,8 +461,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <div id="cur-period-stats" style="font-size:13px;color:var(--text-secondary);margin-top:8px">—</div>
           <button onclick="closePeriod()" style="width:100%;margin-top:14px;padding:11px;border-radius:var(--radius-sm);background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--neon-red);font-size:13px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;">🔒 إغلاق هذه الفترة وبدء فترة جديدة</button>
         </div>
+        <button onclick="newPeriod()" style="width:100%;padding:14px;border-radius:var(--radius-md);margin-bottom:20px;background:linear-gradient(135deg,rgba(124,58,237,0.3),rgba(79,70,229,0.3));border:1px solid rgba(124,58,237,0.4);color:var(--neon-purple);font-size:14px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;">＋ فترة جديدة (شهر / سنة / مخصص)</button>
         <div class="section-title" style="margin-bottom:12px">الفترات السابقة</div>
-        <div id="periods-list"></div>
+        <div id="periods-list"><div class="empty-state"><div class="empty-state-icon">🗓️</div><div class="empty-state-text">لا توجد فترات سابقة بعد</div></div></div>
       </div>
     </div>
   </div>
@@ -443,26 +481,57 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== إعدادات ثابتة =====
+// ===== CONFIG =====
 const API_URL = 'https://script.google.com/macros/s/AKfycbwC4v4jbQmCwzxvbMjqOiIOfvaaLAXLoNBzOougxsbekBMgHKT782chFs1gJzQgUG4/exec';
 const SHEETS_URL = 'https://docs.google.com/spreadsheets';
 const HADEEL_WHATSAPP = '249998451318';
 const WALID_WHATSAPP = '966539635310';
-const TASKER_SECRET_KEY = 'ratcco_pass';
-const DEFAULT_PIN = '2026';
 
-// ===== حفظ البيانات =====
+// ===== SECURITY & PIN =====
+const MY_SECRET_PIN = "2026"; // الرقم السري الذي يطلبه من المتصفح
+const TASKER_SECRET_KEY = "ratcco_pass"; // المفتاح السري المخصص لتاسكر
+
+function checkPin() {
+  const input = document.getElementById('pin-code').value;
+  if(input === MY_SECRET_PIN) {
+    unlockApp();
+  } else {
+    showToast('❌ الرمز خاطئ', 'error');
+    document.getElementById('pin-code').value = '';
+  }
+}
+
+function unlockApp() {
+  document.getElementById('smart-lock').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  // ✅ تحديث شارة الرسائل المعلقة فور الفتح
+  updatePendingBadge();
+}
+
+// ===== STATE =====
 function safeGet(key, fallback) {
-  try { const v = localStorage.getItem(key); return v === null ? fallback : v; } 
-  catch(e) { return fallback; }
+  try {
+    const val = localStorage.getItem(key);
+    if (val === null || val === undefined) return fallback;
+    return val;
+  } catch(e) { return fallback; }
 }
-function safeGetJSON(key, fallback) {
-  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } 
-  catch(e) { return fallback; }
-}
-function safeSave(key, value) { try { localStorage.setItem(key, value); } catch(e) {} }
 
-// ===== الحالة العامة =====
+function safeGetJSON(key, fallback) {
+  try {
+    const val = localStorage.getItem(key);
+    if (!val) return fallback;
+    return JSON.parse(val);
+  } catch(e) {
+    try { localStorage.removeItem(key); } catch(e2) {}
+    return fallback;
+  }
+}
+
+function safeSave(key, value) {
+  try { localStorage.setItem(key, value); } catch(e) {}
+}
+
 let STATE = {
   balances: safeGetJSON('balances', { salary: 0, work: 0, hadeel: 0 }),
   transactions: safeGetJSON('transactions', []),
@@ -477,238 +546,69 @@ let STATE = {
   activePeriod: null,
   coverageWallet: null,
   coverageAmount: 0,
-  appUnlocked: false,
-  // ✅ إصلاح #3: قائمة الانتظار للرسائل التي وصلت والشاشة كانت مقفلة
-  pendingQueue: safeGetJSON('pendingQueue', []),
-  // ✅ إصلاح #4: منع التكرار
-  isDuplicate: false
+  pendingQueue: safeGetJSON('pendingQueue', [])  // ✅ قائمة الرسائل المتأخرة
 };
 
-const BANK_ICONS = {'الراجحي':'🟢','SAB':'🔵','STC Bank':'🟣','ANB':'🔴','غير محدد':'🏦'};
+const BANK_ICONS = {'الراجحي': '🟢', 'SAB': '🔵', 'STC Bank': '🟣', 'ANB': '🔴', 'غير محدد': '🏦'};
 
-// ============================================================
-// ✅ إصلاح #1: نظام قفل جديد بلوحة مفاتيح مخصصة
-// ============================================================
-let pinBuffer = '';
-
-function pinPress(num) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += num;
-  updatePinDots();
-  if (pinBuffer.length === 4) {
-    setTimeout(checkPin, 200); // تأخير بسيط ليرى المستخدم النقطة الأخيرة
-  }
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('nav-' + name)?.classList.add('active');
+  STATE.currentView = name;
+  document.getElementById('scroll-area').scrollTop = 0;
+  if (name === 'invoices') loadInvoices();
+  if (name === 'reports') loadReports();
+  if (name === 'transactions') renderTransactions('full');
+  if (name === 'periods') loadPeriodsView();
 }
 
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updatePinDots();
-}
-
-function updatePinDots() {
-  for (let i = 0; i < 4; i++) {
-    document.getElementById('dot' + i).classList.toggle('filled', i < pinBuffer.length);
-  }
-}
-
-function checkPin() {
-  const savedPin = safeGet('userPin', DEFAULT_PIN);
-  if (pinBuffer === savedPin) {
-    unlockApp();
-  } else {
-    document.getElementById('lock-error').textContent = '❌ الرقم السري خاطئ، حاول مرة أخرى';
-    // هزازة الشاشة
-    document.querySelector('.lock-box').style.animation = 'shake 0.3s ease';
-    setTimeout(() => { document.querySelector('.lock-box').style.animation = ''; }, 300);
-    pinBuffer = '';
-    updatePinDots();
-  }
-}
-
-function unlockApp() {
-  STATE.appUnlocked = true;
-  document.getElementById('smart-lock').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-  document.getElementById('lock-error').textContent = '';
-  
-  // بعد الفتح: تحقق من الرسائل المعلقة
-  checkPendingQueue();
-  loadData();
-}
-
-function lockApp() {
-  STATE.appUnlocked = false;
-  pinBuffer = '';
-  updatePinDots();
-  document.getElementById('smart-lock').style.display = 'flex';
-  document.getElementById('app').classList.remove('visible');
-}
-
-function changePin() {
-  const current = prompt('الرقم السري الحالي:');
-  const savedPin = safeGet('userPin', DEFAULT_PIN);
-  if (current !== savedPin) { showToast('الرقم الحالي خاطئ', 'error'); return; }
-  const newPin = prompt('الرقم السري الجديد (4 أرقام):');
-  if (!newPin || newPin.length !== 4 || isNaN(newPin)) { showToast('يجب أن يكون 4 أرقام', 'error'); return; }
-  safeSave('userPin', newPin);
-  showToast('✅ تم تغيير الرقم السري', 'success');
-}
-
-// إضافة CSS لحركة الهزازة
-const style = document.createElement('style');
-style.textContent = `@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}`;
-document.head.appendChild(style);
-
-// ✅ منع زر الرجوع من إغلاق البوب اب
-window.addEventListener('popstate', (e) => {
-  if (document.getElementById('sms-popup').classList.contains('active')) {
-    // أعد الحالة للمنع
-    history.pushState(null, '', window.location.href);
-    showToast('⚠️ أكمل تصنيف المعاملة أولاً', 'warn');
-  }
-});
-
-// ============================================================
-// ✅ إصلاح #2: فلترة محسّنة — تفريق بين رموز التحقق والمعاملات
-// ============================================================
-function isFinancialSMS(t) {
-  // ❌ استبعاد رموز OTP وغيرها
-  const IGNORE_PATTERNS = [
-    /رمز التحقق/,
-    /لا تشارك الرمز/,
-    /تم تنشيط المستفيد/,
-    /للدخول.*موبايل/,
-    /اسم المستفيد.*اسم المخصص/,
-    /رمز:\s*\d{4,6}/,    // أي رقم مكوّن من 4-6 أرقام بعد كلمة رمز
-    /تحقق.*\d{4,6}/,     // رسائل التحقق
-    /تسجيل.*دخول/,       // تسجيل الدخول
-    /اشعار.*رصيد غير كافٍ/ // إشعار رصيد فقط بدون عملية
-  ];
-  if (IGNORE_PATTERNS.some(r => r.test(t))) return false;
-  
-  // ✅ يجب أن تحتوي على مبلغ مالي واضح
-  return /SAR|SR|ر\.س|USD|حوالة|شراء|إيداع|سحب|راتب/.test(t) && extractAmount(t) > 0;
-}
-
-function isInternalTransfer(t) {
-  // حسابات المستخدم الشخصية
-  const myAccounts = ['5299', '7001', '5893'];
-  let found = myAccounts.filter(a => t.includes(a));
-  // إذا ظهر حسابان مختلفان = تحويل داخلي
-  if (found.length >= 2) return true;
-  // أو حوالة بين الراجحي وساب بشكل صريح
-  if (/حوالة صادرة/.test(t) && /الراجحي|ALRAJHI/.test(t) && /SAB|العربي|STC/.test(t)) return true;
-  return false;
-}
-
-// ============================================================
-// ✅ إصلاح #3: نظام قائمة الانتظار للرسائل المتأخرة
-// ============================================================
-function addToQueue(smsText) {
-  // تحقق: هل هي رسالة مالية حقيقية؟
-  if (!isFinancialSMS(smsText)) return;
-  if (isInternalTransfer(smsText)) return;
-  
-  const parsed = parseSMSText(smsText);
-  if (!parsed || parsed.internal) return;
-  
-  // أضف للانتظار
-  STATE.pendingQueue.push({ parsed, addedAt: new Date().toISOString() });
-  safeSave('pendingQueue', JSON.stringify(STATE.pendingQueue));
-  updatePendingBadge();
-}
-
-function checkPendingQueue() {
-  updatePendingBadge();
-  // إذا في قائمة الانتظار رسائل وفتح التطبيق، اعرضها
-  if (STATE.pendingQueue.length > 0 && STATE.appUnlocked) {
-    setTimeout(processPendingQueue, 1000);
-  }
-}
-
-function processPendingQueue() {
-  if (!STATE.appUnlocked) {
-    showToast('افتح التطبيق أولاً', 'error');
-    return;
-  }
-  if (STATE.pendingQueue.length === 0) {
-    showToast('لا توجد رسائل معلقة', 'success');
-    return;
-  }
-  // اعرض أول رسالة في القائمة
-  const item = STATE.pendingQueue[0];
-  showPopup(item.parsed, true); // true = من قائمة الانتظار
-}
-
-function updatePendingBadge() {
-  const badge = document.getElementById('pending-badge');
-  const count = STATE.pendingQueue.length;
-  document.getElementById('pending-count').textContent = count;
-  document.getElementById('pending-status').textContent = count > 0 ? `${count} رسالة معلقة` : 'لا توجد رسائل معلقة';
-  badge.style.display = count > 0 ? 'block' : 'none';
-}
-
-function clearPending() {
-  if (!confirm(`حذف ${STATE.pendingQueue.length} رسالة معلقة؟`)) return;
-  STATE.pendingQueue = [];
-  safeSave('pendingQueue', JSON.stringify([]));
-  updatePendingBadge();
-  showToast('تم مسح قائمة الانتظار', 'success');
-}
-
-// ============================================================
-// ✅ إصلاح #4: منع التكرار الذكي (نفس المبلغ + نفس التاريخ تقريباً + نفس النوع)
-// ============================================================
-function isDuplicateTransaction(parsed) {
-  const now = new Date().getTime();
-  const WINDOW_MS = 5 * 60 * 1000; // 5 دقائق كنافذة زمنية
-
-  return STATE.transactions.some(tx => {
-    const txTime = new Date(tx.timestamp).getTime();
-    const timeDiff = Math.abs(now - txTime);
-    
-    return (
-      tx.amount === parsed.amount &&
-      tx.type === parsed.type &&
-      tx.bank === parsed.bank &&
-      timeDiff < WINDOW_MS
-    );
-  });
-}
-
-// ============================================================
-// تحليل الرسالة
-// ============================================================
 function parseSMSText(text) {
   if (!isFinancialSMS(text)) return null;
   if (isInternalTransfer(text)) return { internal: true };
-  return {
-    amount: extractAmount(text),
-    currency: extractCurrency(text),
-    type: extractType(text),
-    bank: detectBank(text),
-    merchant: extractMerchant(text),
-    rawText: text,
-    timestamp: new Date().toISOString()
+
+  return { 
+    amount: extractAmount(text), 
+    currency: extractCurrency(text), 
+    type: extractType(text), 
+    bank: detectBank(text), 
+    merchant: extractMerchant(text), 
+    rawText: text, 
+    timestamp: new Date().toISOString() 
   };
 }
 
-function extractAmount(t) {
-  const patterns = [
-    /بـ\s*SAR\s*([\d,]+\.?\d*)/,/بـ\s*SR\s*([\d,]+\.?\d*)/,
-    /بـ\s*([\d,]+\.?\d*)\s*ر\.س/,/بـ:([\d,]+\.?\d*)\s*ر\.س/,
-    /مبلغ:\s*SAR\s*([\d,]+\.?\d*)/,/مبلغ:\s*([\d,]+\.?\d*)\s*SAR/,
-    /SAR\s*([\d,]+\.?\d*)(?!\d)/,/([\d,]+\.?\d*)\s*SAR/,
-    /([\d,]+\.?\d*)\s*ر\.س/,/بـ:([\d,]+\.?\d*)/,
-    /USD\s*([\d,]+\.?\d*)/,/([\d,]+\.?\d*)\s*USD/,
-    /مبلغ:\s*SR\s*([\d,]+\.?\d*)/
+function isFinancialSMS(t) {
+  // ❌ استبعاد صريح لرسائل OTP والتحقق
+  const otp = [
+    /رمز التحقق/,
+    /لا تشارك الرمز/,
+    /تم تنشيط المستفيد/,
+    /اسم المستفيد.*اسم المخصص/,
+    /للدخول.*موبايل/,
+    /رمز:\s*\d{4,6}/,
+    /اشعار.*رصيد غير كافٍ/
   ];
+  if (otp.some(r => r.test(t))) return false;
+  // ✅ يجب أن تحتوي على كلمة مالية ومبلغ أكبر من صفر
+  const hasKeyword = /SAR|SR|ر\.س|USD|حوالة|شراء|إيداع|سحب|راتب|مبلغ:/.test(t);
+  return hasKeyword && extractAmount(t) > 0;
+}
+
+function isInternalTransfer(t) {
+  const myAccounts = ['5299','7001'];
+  let found = myAccounts.filter(a => t.includes(a)).length;
+  if (found >= 2) return true;
+  if (/حوالة صادرة/.test(t) && t.includes('5299') && t.includes('7001')) return true;
+  return false;
+}
+
+function extractAmount(t) {
+  const patterns = [/بـ\s*SAR\s*([\d,]+\.?\d*)/,/بـ\s*SR\s*([\d,]+\.?\d*)/,/بـ\s*([\d,]+\.?\d*)\s*ر\.س/,/بـ:([\d,]+\.?\d*)\s*ر\.س/,/مبلغ:\s*SAR\s*([\d,]+\.?\d*)/,/مبلغ:\s*([\d,]+\.?\d*)\s*SAR/,/SAR\s*([\d,]+\.?\d*)/,/([\d,]+\.?\d*)\s*SAR/,/([\d,]+\.?\d*)\s*ر\.س/,/بـ:([\d,]+\.?\d*)/,/USD\s*([\d,]+\.?\d*)/,/([\d,]+\.?\d*)\s*USD/,/مبلغ:\s*SR\s*([\d,]+\.?\d*)/];
   for (const p of patterns) {
     const m = t.match(p);
-    if (m) {
-      const val = parseFloat(m[1].replace(/,/g,''));
-      if (val > 0) return val;
-    }
+    if (m) return parseFloat(m[1].replace(/,/g,''));
   }
   return 0;
 }
@@ -717,49 +617,74 @@ function extractCurrency(t) { return /USD/.test(t) ? 'USD' : 'SAR'; }
 
 function extractType(t) {
   if (/حوالة.*واردة|إيداع|راتب|إضافة أموال/.test(t)) return 'وارد';
-  if (/شراء|سحب|عملية انترنت/.test(t)) return 'مصروف';
+  if (/شراء|سحب/.test(t)) return 'مصروف';
   if (/حوالة.*صادرة|حوالة محلية صادرة|حوالة داخلية صادرة/.test(t)) return 'تحويل صادر';
   return 'غير محدد';
 }
 
 function detectBank(t) {
-  if (/شراء عبر نقاط البيع/.test(t) || (t.includes('7001') && !t.includes('الراجحي') && !t.includes('stc'))) return 'SAB';
-  if (/إضافة أموال لحسابك|مدفوعات خدمات stc/.test(t) && !/مصرف الراجحي/.test(t)) return 'STC Bank';
+  if (/شراء عبر نقاط البيع|رصيد غير كافٍ/.test(t) || (t.includes('7001') && !t.includes('الراجحي') && !t.includes('stc'))) return 'SAB';
+  if (/إضافة أموال لحسابك/.test(t) && !/مصرف الراجحي/.test(t)) return 'STC Bank';
   if (/العربي موبايل|ANB|0014/.test(t)) return 'ANB';
   if (/5299|5893|الراجحي/.test(t)) return 'الراجحي';
   return 'غير محدد';
 }
 
 function extractMerchant(t) {
-  const pats = [
-    /لدى:\s*([^\n\r]+?)(?:\n|في:|$)/,
-    /إلى:\s*([^\n\r*\d]+?)(?:\n|آيبان|$)/,
-    /لـ([^\n\r؜\d;][^\n\r؜]{1,30})(?:\n|26\/|25\/|\d{2}\/)/,
-    /من:\s*([A-Z][A-Za-z\s]+?)(?:\n|\*|$)/
-  ];
+  const pats = [/لدى:\s*([^\n\r]+?)(?:\n|في:|$)/,/إلى:\s*([^\n\r*\d]+?)(?:\n|آيبان|$)/,/لـ([^\n\r؜\d;][^\n\r؜]{1,30})(?:\n|26\/|25\/|\d{2}\/)/,/من:\s*([A-Z][A-Za-z\s]+?)(?:\n|\*|$)/];
   for (const p of pats) {
     const m = t.match(p);
-    if (m && m[1] && m[1].trim().length > 1 && !/^[\d*]+$/.test(m[1].trim())) {
-      return m[1].trim();
+    if (m && m[1] && m[1].trim().length > 1) {
+      const name = m[1].trim();
+      if (!/^[\d*]+$/.test(name)) return name;
     }
   }
   return '—';
 }
 
-// ============================================================
-// البوب اب
-// ============================================================
+// ✅ إصلاح #4: فحص التكرار — نفس المبلغ + نفس البنك + نفس النوع خلال 5 دقائق
+function isDuplicateTransaction(parsed) {
+  const now = new Date().getTime();
+  const WINDOW_MS = 5 * 60 * 1000;
+  return STATE.transactions.some(tx => {
+    const txTime = new Date(tx.timestamp).getTime();
+    return tx.amount === parsed.amount &&
+           tx.type === parsed.type &&
+           tx.bank === parsed.bank &&
+           Math.abs(now - txTime) < WINDOW_MS;
+  });
+}
+
+// ✅ إصلاح #3: قائمة الانتظار للرسائل التي وصلت والتطبيق كان مقفلاً
+function addToQueue(smsText) {
+  if (!isFinancialSMS(smsText)) return;
+  if (isInternalTransfer(smsText)) return;
+  const parsed = parseSMSText(smsText);
+  if (!parsed || parsed.internal) return;
+  STATE.pendingQueue.push({ parsed, addedAt: new Date().toISOString() });
+  safeSave('pendingQueue', JSON.stringify(STATE.pendingQueue));
+  updatePendingBadge();
+}
+
+function processPendingQueue() {
+  if (STATE.pendingQueue.length === 0) { showToast('لا توجد رسائل معلقة', 'success'); return; }
+  const item = STATE.pendingQueue[0];
+  showPopup(item.parsed, true);
+}
+
+function updatePendingBadge() {
+  const count = STATE.pendingQueue.length;
+  document.getElementById('pending-count').textContent = count;
+  document.getElementById('pending-badge').style.display = count > 0 ? 'block' : 'none';
+}
+
 function showPopup(parsed, fromQueue = false) {
   STATE.currentPopup = parsed;
   STATE.currentPopup._fromQueue = fromQueue;
-  STATE.selectedWallet = ''; 
-  STATE.inv1Checked = false; 
-  STATE.inv2Checked = false;
+  STATE.selectedWallet = ''; STATE.inv1Checked = false; STATE.inv2Checked = false;
 
-  // ✅ إصلاح #4: فحص التكرار
-  STATE.isDuplicate = isDuplicateTransaction(parsed);
-  const dupWarn = document.getElementById('dup-warning');
-  dupWarn.style.display = STATE.isDuplicate ? 'block' : 'none';
+  // ✅ إصلاح #4: إظهار تحذير التكرار
+  document.getElementById('dup-warning').style.display = isDuplicateTransaction(parsed) ? 'block' : 'none';
 
   document.getElementById('popup-bank-icon').textContent = BANK_ICONS[parsed.bank] || '🏦';
   document.getElementById('popup-bank-name').textContent = parsed.bank;
@@ -782,34 +707,30 @@ function showPopup(parsed, fromQueue = false) {
   document.getElementById('invoice-row').classList.remove('show');
   document.getElementById('inv1').classList.remove('checked');
   document.getElementById('inv2').classList.remove('checked');
-  document.getElementById('inv1').textContent = '';
-  document.getElementById('inv2').textContent = '';
   document.getElementById('category-section').style.display = 'none';
 
   if (parsed.type === 'وارد') {
     document.getElementById('wallet-label').textContent = 'أضف لأي رصيد؟';
+    document.getElementById('wb-salary').innerHTML = `💼 راتب<span class="wbal" id="wb-sal-bal">${formatNum(b.salary)}</span>`;
+    document.getElementById('wb-salary').onclick = () => selectWallet('راتب');
+    document.getElementById('wb-work').style.display = 'flex';
+    document.getElementById('wb-hadeel').style.display = 'flex';
   } else {
     document.getElementById('wallet-label').textContent = 'من أي رصيد؟';
+    document.getElementById('wb-salary').innerHTML = `👤 شخصي<span class="wbal" id="wb-sal-bal">${formatNum(b.salary)}</span>`;
+    document.getElementById('wb-salary').onclick = () => { selectWallet('راتب'); showCategorySelector(); };
+    document.getElementById('wb-work').style.display = 'flex';
+    document.getElementById('wb-hadeel').style.display = 'flex';
   }
-
-  // ✅ منع زر الرجوع من إغلاق البوب اب
-  history.pushState(null, '', window.location.href);
 
   document.getElementById('sms-popup').classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 function showCategorySelector() {
-  const cats = [
-    {icon:'🍔',label:'طعام'},{icon:'⛽',label:'وقود'},{icon:'🏠',label:'إيجار'},
-    {icon:'⚡',label:'فواتير'},{icon:'👨‍👩‍👧',label:'أهل'},{icon:'🛒',label:'تسوق'},
-    {icon:'💊',label:'صحة'},{icon:'👕',label:'ملابس'},{icon:'📱',label:'اتصالات'},
-    {icon:'🎮',label:'ترفيه'},{icon:'🏘️',label:'سكن'},{icon:'📦',label:'أخرى'}
-  ];
-  document.getElementById('category-btns').innerHTML = cats.map(c =>
-    `<button onclick="selectCategory('${c.label}')" id="cat-${c.label}" style="padding:10px 8px;border-radius:var(--radius-sm);background:var(--glass);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;">
-      <span style="font-size:18px">${c.icon}</span><span>${c.label}</span>
-    </button>`
+  const cats = [{icon:'🍔',label:'طعام ومشروبات'},{icon:'⛽',label:'وقود'},{icon:'🏠',label:'إيجار سكن'},{icon:'⚡',label:'كهرباء وماء'},{icon:'🏘️',label:'سكن مشترك'},{icon:'👨‍👩‍👧',label:'تحويل للأهل'},{icon:'🛒',label:'منصرفات المنزل'},{icon:'💊',label:'صحة'},{icon:'👕',label:'ملابس'},{icon:'📱',label:'اتصالات'},{icon:'🎮',label:'ترفيه'},{icon:'📦',label:'أخرى'}];
+  document.getElementById('category-btns').innerHTML = cats.map(c => 
+    `<button onclick="selectCategory('${c.label}')" style="padding:10px 8px;border-radius:var(--radius-sm);background:var(--glass);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;font-weight:500;cursor:pointer;transition:all 0.15s;text-align:center;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;flex-direction:column;align-items:center;gap:4px;" id="cat-${c.label}"><span style="font-size:18px">${c.icon}</span><span>${c.label}</span></button>`
   ).join('');
   document.getElementById('category-section').style.display = 'block';
 }
@@ -824,14 +745,7 @@ function selectCategory(cat) {
 function selectWallet(name) {
   STATE.selectedWallet = name;
   document.querySelectorAll('.wallet-btn').forEach(b => b.classList.remove('selected'));
-  const map = {'راتب':'wb-salary','عهدة':'wb-work','هديل':'wb-hadeel'};
-  document.getElementById(map[name])?.classList.add('selected');
-
-  if (name === 'راتب' && STATE.currentPopup?.type !== 'وارد') {
-    showCategorySelector();
-  } else {
-    document.getElementById('category-section').style.display = 'none';
-  }
+  document.getElementById({'راتب':'wb-salary','عهدة':'wb-work','هديل':'wb-hadeel'}[name])?.classList.add('selected');
 
   if (STATE.currentPopup?.type !== 'وارد') {
     const balMap = {'راتب': STATE.balances.salary, 'عهدة': STATE.balances.work, 'هديل': STATE.balances.hadeel};
@@ -842,23 +756,21 @@ function selectWallet(name) {
     if (bal < amount) {
       const shortage = amount - bal;
       document.getElementById('balance-warn-text').textContent = `رصيد ${name} (${formatNum(bal)} SAR) لا يكفي. العجز: ${formatNum(shortage)} SAR`;
-      document.getElementById('coverage-btns').innerHTML = ['راتب','عهدة','هديل']
-        .filter(w => w !== name)
-        .map(w => `<button class="coverage-btn" onclick="selectCoverage('${name}','${w}',${shortage})">من ${w} (${formatNum(balMap[w]||0)} SAR)</button>`)
-        .join('');
+      document.getElementById('coverage-btns').innerHTML = ['راتب','عهدة','هديل'].filter(w => w !== name).map(w => 
+        `<button class="coverage-btn" onclick="selectCoverage('${name}','${w}',${shortage})">من ${w} (${formatNum(balMap[w]||0)} SAR)</button>`
+      ).join('');
       warn.classList.add('show');
     } else {
       warn.classList.remove('show');
     }
   }
-
   document.getElementById('invoice-row').classList.toggle('show', name === 'عهدة');
 }
 
 function selectCoverage(fromWallet, coverWallet, shortage) {
   STATE.coverageWallet = coverWallet;
   STATE.coverageAmount = shortage;
-  showToast(`✅ سيتم تغطية العجز من رصيد ${coverWallet}`, 'success');
+  showToast(`سيتم تغطية العجز من رصيد ${coverWallet}`, 'success');
   document.getElementById('balance-warn').classList.remove('show');
 }
 
@@ -867,8 +779,8 @@ function toggleCheck(id) {
   const checked = !el.classList.contains('checked');
   el.classList.toggle('checked', checked);
   el.textContent = checked ? '✓' : '';
-  if (id === 'inv1') STATE.inv1Checked = checked;
-  if (id === 'inv2') STATE.inv2Checked = checked;
+  if(id==='inv1') STATE.inv1Checked = checked;
+  if(id==='inv2') STATE.inv2Checked = checked;
 }
 
 async function saveFromPopup() {
@@ -877,120 +789,104 @@ async function saveFromPopup() {
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.innerHTML = '<span class="loader-spin"></span> جاري الحفظ...';
 
-  const tx = {
-    ...STATE.currentPopup,
-    wallet: STATE.selectedWallet,
-    category: STATE.selectedCategory || '',
-    invoiceReceived: STATE.inv1Checked,
-    invoiceSubmitted: STATE.inv2Checked,
-    coverageWallet: STATE.coverageWallet || null,
-    coverageAmount: STATE.coverageAmount || 0
-  };
+  const tx = { ...STATE.currentPopup, wallet: STATE.selectedWallet, category: STATE.selectedCategory || '', invoiceReceived: STATE.inv1Checked, invoiceSubmitted: STATE.inv2Checked, coverageWallet: STATE.coverageWallet || null, coverageAmount: STATE.coverageAmount || 0 };
 
   STATE.transactions.unshift(tx);
   safeSave('transactions', JSON.stringify(STATE.transactions));
 
   const bKey = {'راتب':'salary','عهدة':'work','هديل':'hadeel'}[tx.wallet];
-  if (tx.type === 'وارد') { if (bKey) STATE.balances[bKey] += tx.amount; }
+  if (tx.type === 'وارد') { if(bKey) STATE.balances[bKey] += tx.amount; } 
   else {
-    if (bKey) STATE.balances[bKey] = Math.max(0, STATE.balances[bKey] - tx.amount);
+    if(bKey) STATE.balances[bKey] = Math.max(0, STATE.balances[bKey] - tx.amount);
     if (STATE.coverageWallet) {
       const cKey = {'راتب':'salary','عهدة':'work','هديل':'hadeel'}[STATE.coverageWallet];
-      if (cKey) STATE.balances[cKey] = Math.max(0, STATE.balances[cKey] - STATE.coverageAmount);
+      if(cKey) STATE.balances[cKey] = Math.max(0, STATE.balances[cKey] - STATE.coverageAmount);
     }
   }
   saveBalancesLocal(); updateBalanceUI();
 
-  // ✅ إزالة من قائمة الانتظار إذا كانت منها
-  if (tx._fromQueue) {
+  // ✅ إصلاح #3: إزالة من قائمة الانتظار إذا كانت منها
+  if (STATE.currentPopup._fromQueue) {
     STATE.pendingQueue.shift();
     safeSave('pendingQueue', JSON.stringify(STATE.pendingQueue));
     updatePendingBadge();
+    // عرض التالية إن وجدت
+    if (STATE.pendingQueue.length > 0) {
+      setTimeout(() => processPendingQueue(), 800);
+    }
   }
 
   try {
     await apiCall('saveTransaction', { transaction: tx });
     showToast('✅ تم الحفظ في Google Sheets', 'success');
-  } catch(e) {
-    showToast('✅ تم الحفظ محلياً', 'success');
-  }
+  } catch(e) { showToast('✅ تم الحفظ محلياً (سيتم المزامنة لاحقاً)', 'success'); }
 
-  closePopup(); renderTransactions('home'); renderTransactions('full'); calcStats();
+  closePopup(); renderTransactions('home'); renderTransactions('full');
   btn.disabled = false; btn.innerHTML = '💾 حفظ المعاملة';
   STATE.coverageWallet = null; STATE.coverageAmount = 0; STATE.selectedCategory = '';
-
-  // إذا في قائمة الانتظار المزيد، اعرض التالية
-  if (STATE.pendingQueue.length > 0) {
-    setTimeout(() => {
-      showToast(`📩 ${STATE.pendingQueue.length} رسالة متبقية`, 'warn');
-      setTimeout(() => processPendingQueue(), 1500);
-    }, 500);
-  }
 }
 
-function closePopup() {
-  document.getElementById('sms-popup').classList.remove('active');
-  document.body.style.overflow = '';
-}
+function closePopup() { document.getElementById('sms-popup').classList.remove('active'); document.body.style.overflow = ''; }
 
 function skipPopup() {
-  // ✅ إذا كانت من قائمة الانتظار، احذفها
+  // ✅ إصلاح #3: إزالة من القائمة إذا تم تخطيها
   if (STATE.currentPopup?._fromQueue) {
     STATE.pendingQueue.shift();
     safeSave('pendingQueue', JSON.stringify(STATE.pendingQueue));
     updatePendingBadge();
-    
-    // عرض التالية
     if (STATE.pendingQueue.length > 0) {
-      setTimeout(() => processPendingQueue(), 800);
+      setTimeout(() => processPendingQueue(), 600);
     }
   }
   closePopup();
 }
 
-// ============================================================
-// إدخال SMS يدوي
-// ============================================================
-function showSMSInput() {
-  switchView('home');
-  document.getElementById('sms-input-section').style.display = 'block';
-  setTimeout(() => document.getElementById('scroll-area').scrollTop = 9999, 100);
-}
-
+function showSMSInput() { switchView('home'); document.getElementById('sms-input-section').style.display = 'block'; setTimeout(() => document.getElementById('scroll-area').scrollTop = 9999, 100); }
 function parseSMSInput() {
   const text = document.getElementById('sms-textarea').value.trim();
   if (!text) return showToast('الصق رسالة البنك أولاً', 'error');
-  
-  if (!isFinancialSMS(text)) return showToast('🔕 هذه الرسالة ليست معاملة مالية (ربما رمز OTP)', 'error');
-  if (isInternalTransfer(text)) { showToast('🔄 تحويل داخلي — تم تجاهله', 'success'); document.getElementById('sms-textarea').value = ''; return; }
-  
   const parsed = parseSMSText(text);
-  if (!parsed) return showToast('لم أفهم هذه الرسالة', 'error');
-  
-  document.getElementById('sms-textarea').value = '';
-  document.getElementById('sms-input-section').style.display = 'none';
-  showPopup(parsed);
+  if (!parsed) return showToast('🔕 هذه الرسالة ليست معاملة مالية (ربما رمز OTP أو تأكيد)', 'error');
+  if (parsed.internal) { showToast('🔄 تحويل داخلي — تم تجاهله', 'success'); document.getElementById('sms-textarea').value = ''; return; }
+  document.getElementById('sms-textarea').value = ''; document.getElementById('sms-input-section').style.display = 'none'; showPopup(parsed);
 }
 
-// ============================================================
-// تحميل البيانات
-// ============================================================
+// ===== DATA LOADING (GOOGLE SHEETS SYNC) =====
 async function loadData() {
-  updateBalanceUI(); renderTransactions('home'); calcStats(); initPeriods();
+  // 1. عرض البيانات المحلية فوراً
+  const localBal = safeGetJSON('balances', null);
+  if (localBal) { STATE.balances = localBal; updateBalanceUI(); }
+  renderTransactions('home');
+  calcStats();
+  initPeriods();
+
+  // 2. سحب البيانات من السيرفر (Google Sheets)
   try {
     const data = await apiCall('getBalances', {});
-    if (data) {
+    if(data) {
       STATE.balances = { salary: data.salary || 0, work: data.work || 0, hadeel: data.hadeel || 0 };
       saveBalancesLocal(); updateBalanceUI();
     }
+    
+   // سحب المعاملات لتحديث القائمة
     const apiTxs = await apiCall('getTransactions', {});
     if (apiTxs && Array.isArray(apiTxs) && apiTxs.length > 0) {
       STATE.transactions = apiTxs;
       safeSave('transactions', JSON.stringify(STATE.transactions));
-      renderTransactions('home'); renderTransactions('full'); calcStats();
-      loadReports(); loadInvoices(); loadPeriodsView();
+      renderTransactions('home');
+      renderTransactions('full');
+      calcStats();
+      loadPeriodsView();
+      
+      // السطران التاليان هما الحل الجذري لمشكلة الأصفار:
+      loadReports(); 
+      loadInvoices(); 
+      
+      showToast('✅ تمت المزامنة مع Google Sheets بنجاح', 'success');
     }
-  } catch(e) { console.log('API Offline:', e); }
+  } catch(e) {
+    console.log('API Sync Error:', e);
+  }
 }
 
 function updateBalanceUI() {
@@ -1001,28 +897,12 @@ function updateBalanceUI() {
 
 function saveBalancesLocal() { safeSave('balances', JSON.stringify(STATE.balances)); }
 
-function switchView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  document.getElementById('nav-' + name)?.classList.add('active');
-  STATE.currentView = name;
-  document.getElementById('scroll-area').scrollTop = 0;
-  if (name === 'invoices') loadInvoices();
-  if (name === 'reports') loadReports();
-  if (name === 'transactions') renderTransactions('full');
-  if (name === 'periods') loadPeriodsView();
-}
-
 function renderTransactions(target) {
   const txs = STATE.transactions;
   const list = document.getElementById(target === 'home' ? 'tx-list-home' : 'tx-list-full');
   const items = target === 'home' ? txs.slice(0, 6) : txs;
 
-  if (!items.length) {
-    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🌙</div><div class="empty-state-text">لا توجد معاملات بعد</div></div>`;
-    return;
-  }
+  if (!items.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">🌙</div><div class="empty-state-text">لا توجد معاملات بعد</div></div>`; return; }
 
   list.innerHTML = items.map((tx, i) => {
     const isInc = tx.type === 'وارد';
@@ -1030,19 +910,15 @@ function renderTransactions(target) {
     const cls = isInc ? 'income' : tx.type === 'تحويل صادر' ? 'transfer' : 'expense';
     const walletCls = tx.wallet === 'عهدة' ? 'work' : tx.wallet === 'هديل' ? 'hadeel' : '';
     const date = tx.timestamp ? new Date(tx.timestamp).toLocaleDateString('ar-SA') : '';
-    const invFlags = tx.wallet === 'عهدة'
-      ? `<div class="tx-invoice-flags"><div class="inv-flag ${tx.invoiceReceived?'done':''}" title="مستلمة"></div><div class="inv-flag ${tx.invoiceSubmitted?'done':''}" title="مسلمة"></div></div>`
-      : '';
-    return `<div class="tx-item"><div class="tx-icon ${cls}">${icon}</div><div class="tx-info"><div class="tx-merchant">${tx.merchant||'—'}</div><div class="tx-meta"><span>${tx.bank||''}</span><span class="tx-wallet-tag ${walletCls}">${tx.wallet}</span><span>${date}</span></div>${invFlags}</div><div class="tx-amount ${cls}">${isInc?'+':'-'}${formatNum(tx.amount)} ${tx.currency||'SAR'}</div></div>`;
+    const invFlags = tx.wallet === 'عهدة' ? `<div class="tx-invoice-flags"><div class="inv-flag ${tx.invoiceReceived?'done':'pending'}" title="مستلمة"></div><div class="inv-flag ${tx.invoiceSubmitted?'done':'pending'}" title="مسلمة"></div></div>` : '';
+
+    return `<div class="tx-item" onclick="txDetail(${i})"><div class="tx-icon ${cls}">${icon}</div><div class="tx-info"><div class="tx-merchant">${tx.merchant||'—'}</div><div class="tx-meta"><span>${tx.bank||''}</span><span class="tx-wallet-tag ${walletCls}">${tx.wallet}</span><span>${date}</span></div>${invFlags}</div><div class="tx-amount ${cls}">${isInc?'+':'-'}${formatNum(tx.amount)} ${tx.currency||'SAR'}</div></div>`;
   }).join('');
 }
 
 function calcStats() {
   const now = new Date();
-  const tm = STATE.transactions.filter(tx => {
-    const d = new Date(tx.timestamp);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  });
+  const tm = STATE.transactions.filter(tx => { const d = new Date(tx.timestamp); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
   const inc = tm.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
   const exp = tm.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
   document.getElementById('stat-income').textContent = '+' + formatNum(inc) + ' SAR';
@@ -1053,17 +929,11 @@ function loadInvoices() {
   const workTxs = STATE.transactions.filter(tx => tx.wallet === 'عهدة');
   const list = document.getElementById('invoices-list');
   if (!workTxs.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📄</div><div class="empty-state-text">لا توجد معاملات عهدة</div></div>`; return; }
-  list.innerHTML = workTxs.map(tx => {
+
+  list.innerHTML = workTxs.map((tx, i) => {
     const idx = STATE.transactions.indexOf(tx);
     const date = tx.timestamp ? new Date(tx.timestamp).toLocaleDateString('ar-SA') : '';
-    return `<div class="invoice-card">
-      <div class="invoice-top"><div class="invoice-merchant">${tx.merchant||'—'}</div><div class="invoice-amount">${formatNum(tx.amount)} ${tx.currency||'SAR'}</div></div>
-      <div class="invoice-date">${date} · ${tx.bank||''}</div>
-      <div class="invoice-checks">
-        <div class="inv-check ${tx.invoiceReceived?'done':''}" onclick="toggleInvoice(${idx},'invoiceReceived')"><span class="inv-check-icon">${tx.invoiceReceived?'✅':'📥'}</span><span class="inv-check-label">استلمت الفاتورة</span></div>
-        <div class="inv-check ${tx.invoiceSubmitted?'done':''}" onclick="toggleInvoice(${idx},'invoiceSubmitted')"><span class="inv-check-icon">${tx.invoiceSubmitted?'✅':'📤'}</span><span class="inv-check-label">سلّمت للمالية</span></div>
-      </div>
-    </div>`;
+    return `<div class="invoice-card"><div class="invoice-top"><div class="invoice-merchant">${tx.merchant||'—'}</div><div class="invoice-amount">${formatNum(tx.amount)} ${tx.currency||'SAR'}</div></div><div class="invoice-date">${date} · ${tx.bank||''}</div><div class="invoice-checks"><div class="inv-check ${tx.invoiceReceived?'done':''}" onclick="toggleInvoice(${idx},'invoiceReceived')"><span class="inv-check-icon">${tx.invoiceReceived?'✅':'📥'}</span><span class="inv-check-label">استلمت الفاتورة</span></div><div class="inv-check ${tx.invoiceSubmitted?'done':''}" onclick="toggleInvoice(${idx},'invoiceSubmitted')"><span class="inv-check-icon">${tx.invoiceSubmitted?'✅':'📤'}</span><span class="inv-check-label">سلّمت للمالية</span></div></div></div>`;
   }).join('');
 }
 
@@ -1076,19 +946,17 @@ function toggleInvoice(idx, field) {
 }
 
 function loadReports() { loadHadeel(); loadWalidPending(); }
-function setPeriod(period, el) {
-  STATE.currentPeriod = period;
-  document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active'); loadHadeel();
-}
+function setPeriod(period, el) { STATE.currentPeriod = period; document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active')); el.classList.add('active'); loadHadeel(); }
 function loadHadeel() {
   const p = STATE.currentPeriod; const now = new Date();
   let txs = STATE.transactions.filter(tx => tx.wallet === 'هديل');
   if (p === 'month') txs = txs.filter(tx => { const d = new Date(tx.timestamp); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
   else if (p === 'last30') { const ago = new Date(now - 30*24*60*60*1000); txs = txs.filter(tx => new Date(tx.timestamp) >= ago); }
+
   const inc = txs.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
   const exp = txs.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
   const net = inc - exp;
+
   document.getElementById('hadeel-income').textContent = formatNum(inc) + ' SAR';
   document.getElementById('hadeel-expense').textContent = formatNum(exp) + ' SAR';
   const netEl = document.getElementById('hadeel-net');
@@ -1100,34 +968,28 @@ function loadWalidPending() {
   const pending = STATE.transactions.filter(tx => tx.wallet === 'عهدة' && !tx.invoiceReceived);
   const list = document.getElementById('walid-list');
   if (!pending.length) { list.innerHTML = `<div class="empty-state" style="padding:20px 0"><div class="empty-state-icon" style="font-size:24px">✅</div><div class="empty-state-text">جميع المبالغ لها فواتير</div></div>`; return; }
-  list.innerHTML = pending.map(tx =>
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
-      <div><div style="font-weight:500">${tx.merchant||'—'}</div><div style="color:var(--text-secondary)">${tx.timestamp?new Date(tx.timestamp).toLocaleDateString('ar-SA'):''}</div></div>
-      <div style="font-family:'JetBrains Mono',monospace;color:var(--neon-amber);font-weight:600">${formatNum(tx.amount)} SAR</div>
-    </div>`
-  ).join('');
+  list.innerHTML = pending.map(tx => `<div class="walid-pending-item"><div><div style="font-weight:500">${tx.merchant||'—'}</div><div class="walid-date">${tx.timestamp?new Date(tx.timestamp).toLocaleDateString('ar-SA'):''}</div></div><div class="walid-amount">${formatNum(tx.amount)} SAR</div></div>`).join('');
 }
 
 function sendHadeelWhatsapp() {
   const inc = document.getElementById('hadeel-income').textContent;
   const exp = document.getElementById('hadeel-expense').textContent;
-  const net = document.getElementById('hadeel-net').textContent;
-  const msg = encodeURIComponent(`📊 *تقرير هديل المالي*\nالتاريخ: ${new Date().toLocaleDateString('ar-SA')}\n\n✅ إجمالي الإيرادات: ${inc}\n🔴 إجمالي المصروفات: ${exp}\n━━━━━━━━━━━━━━\n💎 الصافي: ${net}\n\n_تم الإنشاء تلقائياً من نظام محفظتي_`);
+  const msg = encodeURIComponent(`📊 *تقرير هديل المالي*\nالتاريخ: ${new Date().toLocaleDateString('ar-SA')}\n\n✅ إجمالي الإيرادات: ${inc}\n🔴 إجمالي المصروفات: ${exp}\n━━━━━━━━━━━━━━\n💎 الصافي: ${document.getElementById('hadeel-net').textContent}\n\n_تم الإنشاء تلقائياً من نظام محفظتي_`);
   window.open(`https://wa.me/${HADEEL_WHATSAPP}?text=${msg}`, '_blank');
 }
 
 function sendWalidReminder() {
   const pending = STATE.transactions.filter(tx => tx.wallet === 'عهدة' && !tx.invoiceReceived);
   if (!pending.length) return showToast('لا توجد فواتير معلقة', 'success');
-  const lines = pending.map(tx => `• ${tx.merchant} — ${formatNum(tx.amount)} SAR`).join('\n');
+  let lines = pending.map(tx => `• ${tx.merchant} — ${formatNum(tx.amount)} SAR`).join('\n');
   const msg = encodeURIComponent(`📋 *تذكير فواتير مطلوبة*\n\nوليد، الرجاء تسليم فواتير المبالغ التالية:\n\n${lines}\n\nشكراً 🙏`);
   window.open(`https://wa.me/${WALID_WHATSAPP}?text=${msg}`, '_blank');
 }
 
 function setupBalances() {
-  const s = prompt(`رصيد الراتب (${STATE.balances.salary} SAR):`); if (s === null) return;
-  const w = prompt(`رصيد العهدة (${STATE.balances.work} SAR):`); if (w === null) return;
-  const h = prompt(`رصيد هديل (${STATE.balances.hadeel} SAR):`); if (h === null) return;
+  const s = prompt(`رصيد الراتب (${STATE.balances.salary}):`); if(s===null) return;
+  const w = prompt(`رصيد العهدة (${STATE.balances.work}):`); if(w===null) return;
+  const h = prompt(`رصيد هديل (${STATE.balances.hadeel}):`); if(h===null) return;
   STATE.balances = { salary: parseFloat(s)||0, work: parseFloat(w)||0, hadeel: parseFloat(h)||0 };
   saveBalancesLocal(); updateBalanceUI(); showToast('✅ تم التحديث', 'success');
 }
@@ -1136,19 +998,21 @@ function openSheets() { window.open(SHEETS_URL, '_blank'); }
 
 async function testAPI() {
   const el = document.getElementById('api-status'); el.textContent = '⏳ جاري المزامنة...';
-  try { await loadData(); el.textContent = '✅ تمت المزامنة بنجاح'; }
-  catch(e) { el.textContent = '❌ خطأ في الاتصال'; }
+  try {
+    await loadData();
+    el.textContent = '✅ تمت المزامنة بنجاح';
+  } catch(e) { el.textContent = '❌ خطأ في الاتصال'; showToast('❌ تعذر الاتصال بالـ API', 'error'); }
 }
 
 function filterByWallet(name) {
-  switchView('transactions');
-  document.getElementById('tx-filter-label').textContent = '← ' + name;
+  switchView('transactions'); document.getElementById('tx-filter-label').textContent = '← ' + name;
   const filtered = STATE.transactions.filter(tx => tx.wallet === name);
   const list = document.getElementById('tx-list-full');
   if (!filtered.length) { list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">لا يوجد</div></div>`; return; }
-  const saved = STATE.transactions; STATE.transactions = filtered;
-  renderTransactions('full'); STATE.transactions = saved;
+  const saved = STATE.transactions; STATE.transactions = filtered; renderTransactions('full'); STATE.transactions = saved;
 }
+
+function txDetail(idx) {}
 
 async function apiCall(action, data) {
   const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action, ...data }) });
@@ -1157,16 +1021,9 @@ async function apiCall(action, data) {
   return json.data;
 }
 
-function formatNum(n) { return (!n && n !== 0) ? '0' : Number(n).toLocaleString('ar-SA', { maximumFractionDigits: 2 }); }
+function formatNum(n) { return (!n && n!==0) ? '0' : Number(n).toLocaleString('ar-SA', { maximumFractionDigits: 2 }); }
+function showToast(msg, type = 'success') { const t = document.getElementById('toast'); t.textContent = msg; t.className = 'toast show ' + type; setTimeout(() => t.classList.remove('show'), 3000); }
 
-function showToast(msg, type = 'success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
-
-// ===== الفترات =====
 function initPeriods() {
   let p = safeGetJSON('periods', []);
   if (!p.length) {
@@ -1174,11 +1031,11 @@ function initPeriods() {
     p.push({ id: now.toISOString().slice(0,7), label: now.toLocaleDateString('ar-SA', {month:'long',year:'numeric'}), start: new Date(now.getFullYear(), now.getMonth(), 1).toISOString(), end: null, active: true });
     safeSave('periods', JSON.stringify(p));
   }
-  STATE.periods = p; STATE.activePeriod = p.find(x => x.active) || p[p.length-1];
+  STATE.periods = p; STATE.activePeriod = p.find(x => x.active) || p[p.length - 1];
   updatePeriodBadge();
 }
 
-function updatePeriodBadge() { if (STATE.activePeriod) document.getElementById('period-badge').textContent = STATE.activePeriod.label; }
+function updatePeriodBadge() { if(STATE.activePeriod) document.getElementById('period-badge').textContent = STATE.activePeriod.label; }
 
 function loadPeriodsView() {
   const active = STATE.activePeriod;
@@ -1187,20 +1044,17 @@ function loadPeriodsView() {
     const txs = getTransactionsForPeriod(active);
     const inc = txs.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
     const exp = txs.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
-    document.getElementById('cur-period-stats').textContent = `↑ ${formatNum(inc)}    ↓ ${formatNum(exp)}    (${txs.length} معاملة)`;
+    document.getElementById('cur-period-stats').textContent = `↑ وارد: ${formatNum(inc)}    ↓ صادر: ${formatNum(exp)}    (${txs.length} معاملة)`;
   }
   const past = STATE.periods.filter(p => !p.active).reverse();
   const list = document.getElementById('periods-list');
-  if (!past.length) { list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🗓️</div><div class="empty-state-text">لا توجد فترات سابقة</div></div>'; return; }
+  if (!past.length) { list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🗓️</div><div class="empty-state-text">لا توجد فترات سابقة بعد</div></div>'; return; }
   list.innerHTML = past.map(p => {
     const txs = getTransactionsForPeriod(p);
     const inc = txs.filter(t => t.type === 'وارد').reduce((s,t) => s + t.amount, 0);
     const exp = txs.filter(t => t.type !== 'وارد').reduce((s,t) => s + t.amount, 0);
     const net = inc - exp;
-    return `<div style="padding:14px 16px;border-radius:var(--radius-md);margin-bottom:8px;background:var(--glass);border:1px solid var(--border);">
-      <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:15px;font-weight:600">${p.label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:${net>=0?'var(--neon-green)':'var(--neon-red)'}">${net>=0?'+':''}${formatNum(net)}</div></div>
-      <div style="font-size:12px;color:var(--text-secondary);margin-top:6px">${txs.length} معاملة · وارد ${formatNum(inc)} · صادر ${formatNum(exp)}</div>
-    </div>`;
+    return `<div style="padding:14px 16px;border-radius:var(--radius-md);margin-bottom:8px;background:var(--glass);border:1px solid var(--border);cursor:pointer;" onclick="viewPeriodDetail('${p.id}')"><div style="display:flex;justify-content:space-between;align-items:center"><div style="font-size:15px;font-weight:600">${p.label}</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:${net>=0?'var(--neon-green)':'var(--neon-red)'}">${net>=0?'+':''}${formatNum(net)}</div></div><div style="font-size:12px;color:var(--text-secondary);margin-top:6px">${txs.length} معاملة · وارد ${formatNum(inc)} · صادر ${formatNum(exp)}</div></div>`;
   }).join('');
 }
 
@@ -1210,47 +1064,84 @@ function getTransactionsForPeriod(period) {
 }
 
 function closePeriod() {
-  if (!confirm('إغلاق الفترة الحالية وبدء فترة جديدة؟')) return;
+  if (!confirm('هل أنت متأكد من إغلاق الفترة الحالية؟')) return;
   const active = STATE.periods.find(p => p.active);
   if (active) { active.end = new Date().toISOString(); active.active = false; }
   const now = new Date();
   STATE.periods.push({ id: now.toISOString().slice(0,7)+'-'+Date.now(), label: now.toLocaleDateString('ar-SA', {month:'long',year:'numeric'}), start: now.toISOString(), end: null, active: true });
-  safeSave('periods', JSON.stringify(STATE.periods)); STATE.activePeriod = STATE.periods[STATE.periods.length-1]; updatePeriodBadge(); loadPeriodsView();
+  safeSave('periods', JSON.stringify(STATE.periods)); STATE.activePeriod = STATE.periods[STATE.periods.length - 1]; updatePeriodBadge(); loadPeriodsView();
 }
 
-// ===== بداية التشغيل =====
+function newPeriod() {
+  const choice = prompt('نوع الفترة:\n1. شهر جديد\n2. سنة جديدة\n3. مخصص');
+  let label = ''; const now = new Date();
+  if (choice === '1') label = now.toLocaleDateString('ar-SA', {month:'long',year:'numeric'});
+  else if (choice === '2') label = 'سنة ' + now.getFullYear();
+  else if (choice === '3') label = prompt('اسم الفترة:') || 'فترة مخصصة';
+  else return;
+  
+  const active = STATE.periods.find(p => p.active);
+  if (active) { active.end = now.toISOString(); active.active = false; }
+  STATE.periods.push({ id: now.toISOString().slice(0,7)+'-'+Date.now(), label, start: now.toISOString(), end: null, active: true });
+  safeSave('periods', JSON.stringify(STATE.periods)); STATE.activePeriod = STATE.periods[STATE.periods.length - 1]; updatePeriodBadge(); loadPeriodsView();
+}
+
+function viewPeriodDetail(id) {
+  const p = STATE.periods.find(x => x.id === id); if(!p) return;
+  STATE.transactions_backup = STATE.transactions; STATE.transactions = getTransactionsForPeriod(p);
+  document.getElementById('tx-filter-label').textContent = '← ' + p.label; switchView('transactions');
+}
+
+// ===== INIT (SMART BOOT) =====
 window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const authKey = urlParams.get('key');
   const smsFromUrl = urlParams.get('sms');
 
-  // تاسكر يفتح التطبيق مباشرة
+  // التحقق من مفتاح تاسكر السري
   if (authKey === TASKER_SECRET_KEY) {
-    unlockApp();
+    unlockApp(); // فتح النظام فوراً لتاسكر بدون طلب PIN
+  } else {
+    // إبقاء القفل مغلقاً للمتصفح العادي
+    document.getElementById('smart-lock').style.display = 'flex';
   }
 
-  // ✅ إصلاح #3: رسالة جاءت عبر تاسكر
+  // تحميل البيانات في الخلفية بكل الأحوال
+  loadData();
+
+  // ✅ إصلاح #3: رسالة SMS وصلت من تاسكر
   if (smsFromUrl) {
     const smsText = decodeURIComponent(smsFromUrl);
-    
+
     if (authKey === TASKER_SECRET_KEY) {
-      // التطبيق مفتوح: اعرض البوب اب مباشرة
+      // التطبيق مفتوح بالمفتاح: اعرض البوب اب بعد لحظة (بعد اكتمال unlockApp)
       setTimeout(() => {
-        if (!isFinancialSMS(smsText)) return;
-        if (isInternalTransfer(smsText)) { showToast('🔄 تحويل داخلي — تم تجاهله'); return; }
         const parsed = parseSMSText(smsText);
-        if (parsed && !parsed.internal) showPopup(parsed);
-      }, 800);
+        if (parsed && !parsed.internal) {
+          showPopup(parsed);
+        } else if (parsed && parsed.internal) {
+          showToast('🔄 تحويل داخلي — تم تجاهله', 'success');
+        }
+      }, 600);
     } else {
-      // التطبيق مقفل: احفظ في قائمة الانتظار
+      // ✅ الشاشة مقفلة: احفظ الرسالة في قائمة الانتظار
       addToQueue(smsText);
     }
-    
+
+    // مسح الرابط للأمان
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 
-  // تحديث شارة الانتظار
+  // تحديث شارة الانتظار عند الفتح
   updatePendingBadge();
+});
+
+// ✅ إصلاح #1: منع زر الرجوع من إغلاق البوب اب
+window.addEventListener('popstate', () => {
+  if (document.getElementById('sms-popup').classList.contains('active')) {
+    history.pushState(null, '', window.location.href);
+    showToast('⚠️ أكمل تصنيف المعاملة أولاً', 'error');
+  }
 });
 </script>
 </body>
