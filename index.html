@@ -454,9 +454,22 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   <div class="lock-box">
     <div style="font-size:40px;margin-bottom:10px">🔒</div>
     <div style="font-size:18px;font-weight:600">النظام المالي محمي</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:5px;">أدخل رمز المرور للوصول الآمن</div>
-    <input type="password" id="pin-code" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" onkeydown="if(event.key==='Enter') checkPin()">
-    <button onclick="checkPin()" class="btn-save" style="width:100%">فتح النظام</button>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:5px;" id="lock-subtitle">جارٍ التحقق من البصمة...</div>
+
+    <!-- زر البصمة -->
+    <div id="biometric-section">
+      <button onclick="tryBiometric()" id="biometric-btn" style="width:100%;margin:20px 0 10px;padding:18px;border-radius:var(--radius-md);background:linear-gradient(135deg,rgba(96,165,250,0.2),rgba(167,139,250,0.2));border:1px solid rgba(96,165,250,0.4);color:var(--neon-blue);font-size:16px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;align-items:center;justify-content:center;gap:10px;">
+        <span style="font-size:28px">👆</span> فتح بالبصمة
+      </button>
+      <div onclick="showPinFallback()" style="text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;padding:8px;text-decoration:underline;">استخدم رمز المرور بدلاً من ذلك</div>
+    </div>
+
+    <!-- رمز المرور (احتياطي) -->
+    <div id="pin-section" style="display:none;">
+      <input type="password" id="pin-code" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" onkeydown="if(event.key==='Enter') checkPin()">
+      <button onclick="checkPin()" class="btn-save" style="width:100%;margin-bottom:10px;">فتح النظام</button>
+      <div onclick="showBiometricSection()" style="text-align:center;font-size:13px;color:var(--text-muted);cursor:pointer;padding:8px;text-decoration:underline;">العودة للبصمة</div>
+    </div>
   </div>
 </div>
 
@@ -863,7 +876,71 @@ const WALID_WHATSAPP = '966539635310';
 const MY_SECRET_PIN = "2026";
 const TASKER_SECRET_KEY = "ratcco_pass";
 
-// ===== PIN LOGIC (نظام الأرقام السرية الجديد) =====
+// ===== BIOMETRIC + PIN LOGIC =====
+function showBiometricSection() {
+  document.getElementById('biometric-section').style.display = 'block';
+  document.getElementById('pin-section').style.display = 'none';
+  document.getElementById('lock-subtitle').textContent = 'استخدم البصمة للوصول الآمن';
+}
+
+function showPinFallback() {
+  document.getElementById('biometric-section').style.display = 'none';
+  document.getElementById('pin-section').style.display = 'block';
+  document.getElementById('lock-subtitle').textContent = 'أدخل رمز المرور للوصول الآمن';
+  setTimeout(() => document.getElementById('pin-code').focus(), 100);
+}
+
+async function tryBiometric() {
+  const btn = document.getElementById('biometric-btn');
+  const subtitle = document.getElementById('lock-subtitle');
+
+  // تحقق من دعم WebAuthn
+  if (!window.PublicKeyCredential) {
+    subtitle.textContent = 'البصمة غير مدعومة — استخدم رمز المرور';
+    showPinFallback();
+    return;
+  }
+
+  try {
+    btn.style.opacity = '0.6';
+    btn.style.pointerEvents = 'none';
+    subtitle.textContent = 'ضع إصبعك على المستشعر...';
+
+    // استخدام WebAuthn للتحقق من الهوية
+    const challenge = new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: 'required',
+        rpId: window.location.hostname
+      }
+    });
+
+    // نجاح البصمة
+    unlockApp();
+
+  } catch(err) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+
+    if (err.name === 'NotAllowedError') {
+      // المستخدم رفض أو انتهت المهلة
+      subtitle.textContent = 'لم يتم التعرف على البصمة';
+    } else if (err.name === 'InvalidStateError' || err.name === 'NotSupportedError') {
+      // لا يوجد بيانات بصمة مسجلة — انتقل لرمز المرور
+      subtitle.textContent = 'لم تُسجَّل بصمة — استخدم رمز المرور';
+      setTimeout(() => showPinFallback(), 1500);
+    } else {
+      // أي خطأ آخر — انتقل لرمز المرور
+      subtitle.textContent = 'تعذرت البصمة — استخدم رمز المرور';
+      setTimeout(() => showPinFallback(), 1500);
+    }
+  }
+}
+
 function checkPin() {
   const input = document.getElementById('pin-code').value;
   if (input === MY_SECRET_PIN) {
@@ -2032,6 +2109,8 @@ window.addEventListener('load', () => {
     unlockApp();
   } else {
     document.getElementById('smart-lock').style.display = 'flex';
+    // تشغيل البصمة تلقائياً عند فتح الصفحة
+    setTimeout(() => tryBiometric(), 500);
   }
 
   loadData();
