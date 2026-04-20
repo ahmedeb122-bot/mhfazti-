@@ -971,6 +971,7 @@ let STATE = {
   periods: safeGetJSON('periods', []),
   smsQueue: safeGetJSON('smsQueue', []),
   debts: safeGetJSON('debts', []),
+  deletedTimestamps: safeGetJSON('deletedTimestamps', []), // سجل المحذوفات
   currentPopup: null,
   selectedWallet: '',
   selectedCategory: '',
@@ -1439,6 +1440,13 @@ function deleteTransaction(idx, event) {
 
   STATE.transactions.splice(idx, 1);
   safeSave('transactions', JSON.stringify(STATE.transactions));
+
+  // سجّل الـ timestamp في قائمة المحذوفات لمنع عودتها عند المزامنة
+  if (tx.timestamp) {
+    STATE.deletedTimestamps.push(tx.timestamp);
+    safeSave('deletedTimestamps', JSON.stringify(STATE.deletedTimestamps));
+  }
+
   saveBalancesLocal();
   updateBalanceUI();
   renderTransactions('home');
@@ -1449,7 +1457,9 @@ function deleteTransaction(idx, event) {
 
   // حذف من السيرفر بالـ timestamp (المعرّف الفريد)
   if (tx.timestamp) {
-    apiCall('deleteTransaction', { timestamp: tx.timestamp }).catch(() => {});
+    apiCall('deleteTransaction', { timestamp: tx.timestamp })
+      .then(r => { if(r && r.deleted) console.log('حُذفت من Sheets'); })
+      .catch(() => {});
   }
 }
 
@@ -1489,9 +1499,29 @@ async function loadData() {
       STATE.balances = { salary: data.salary || 0, work: data.work || 0, hadeel: data.hadeel || 0 };
       saveBalancesLocal(); updateBalanceUI();
     }
+
     const apiTxs = await apiCall('getTransactions', {});
     if (apiTxs && Array.isArray(apiTxs) && apiTxs.length > 0) {
-      STATE.transactions = apiTxs;
+
+      // حذف المعاملات المحذوفة محلياً من الشيت أولاً
+      const deleted = STATE.deletedTimestamps || [];
+      if (deleted.length > 0) {
+        for (const ts of deleted) {
+          try {
+            await apiCall('deleteTransaction', { timestamp: ts });
+          } catch(e) {}
+        }
+        // امسح سجل الحذف بعد التزامن
+        STATE.deletedTimestamps = [];
+        safeSave('deletedTimestamps', '[]');
+      }
+
+      // تصفية المعاملات القادمة من الشيت — استبعد المحذوفات
+      const filteredTxs = apiTxs.filter(tx =>
+        !deleted.includes(tx.timestamp)
+      );
+
+      STATE.transactions = filteredTxs;
       safeSave('transactions', JSON.stringify(STATE.transactions));
       renderTransactions('home');
       renderTransactions('full');
