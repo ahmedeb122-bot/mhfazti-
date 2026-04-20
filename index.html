@@ -792,6 +792,13 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           </div>
           <div class="settings-item-arrow">›</div>
         </div>
+        <div class="settings-item" onclick="uploadAllTransactions()">
+          <div>
+            <div class="settings-item-label">☁️ رفع كل المعاملات للسيرفر</div>
+            <div class="settings-item-sub" id="upload-status">رفع المعاملات المحلية إلى Google Sheets</div>
+          </div>
+          <div class="settings-item-arrow">›</div>
+        </div>
         <div class="settings-item" onclick="openSheets()">
           <div>
             <div class="settings-item-label">📊 فتح Google Sheets</div>
@@ -847,7 +854,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 
 <script>
 // ===== CONFIG =====
-const API_URL = 'https://script.google.com/macros/s/AKfycbwC4v4jbQmCwzxvbMjqOiIOfvaaLAXLoNBzOougxsbekBMgHKT782chFs1gJzQgUG4/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzsIwBk9Q5qv1Zabqt_vuAjG0PUHK1Qo6CoYIyY9GXCDLN59FBYlDADL5XVN7k_Z7w/exec';
 const SHEETS_URL = 'https://docs.google.com/spreadsheets';
 const HADEEL_WHATSAPP = '249998451318';
 const WALID_WHATSAPP = '966539635310';
@@ -1778,7 +1785,30 @@ function viewPeriodDetail(id) {
 // ===== SETTINGS =====
 function openSheets() { window.open(SHEETS_URL, '_blank'); }
 
-async function testAPI() {
+async function uploadAllTransactions() {
+  const el = document.getElementById('upload-status');
+  const txs = STATE.transactions;
+  if (!txs.length) { showToast('لا توجد معاملات محلية', 'error'); return; }
+
+  if (!confirm(`سيتم رفع ${txs.length} معاملة إلى Google Sheets. هل أنت متأكد؟`)) return;
+
+  el.textContent = '⏳ جاري الرفع...';
+  let success = 0, failed = 0;
+
+  for (const tx of [...txs].reverse()) {
+    try {
+      await apiCall('saveTransaction', { transaction: tx });
+      success++;
+    } catch(e) {
+      failed++;
+    }
+  }
+
+  el.textContent = `✅ تم رفع ${success} معاملة${failed > 0 ? ` · فشل ${failed}` : ''}`;
+  showToast(`✅ تم رفع ${success} معاملة للسيرفر`, 'success');
+}
+
+
   const el = document.getElementById('api-status'); el.textContent = '⏳ جاري المزامنة...';
   try {
     await loadData();
@@ -2038,9 +2068,13 @@ window.addEventListener('load', () => {
   });
 });
 </script>
-  <script>
+<script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/mhfazti-/sw.js');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/mhfazti-/sw.js')
+        .then(() => console.log('SW registered'))
+        .catch(e => console.log('SW error:', e));
+    });
   }
 </script>
 </body>
