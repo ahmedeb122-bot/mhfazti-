@@ -1419,7 +1419,7 @@ function renderWalletStatusTags() {
 
 // ===== حذف المعاملة (مُصلح) =====
 function deleteTransaction(idx, event) {
-  event.stopPropagation(); // لا تفتح تفاصيل المعاملة
+  event.stopPropagation();
   if (!confirm('هل أنت متأكد من حذف هذه المعاملة؟')) return;
 
   const tx = STATE.transactions[idx];
@@ -1447,8 +1447,10 @@ function deleteTransaction(idx, event) {
   loadInvoices();
   showToast('🗑️ تم حذف المعاملة', 'success');
 
-  // محاولة الحذف من السيرفر (اختياري)
-  apiCall('deleteTransaction', { rowIndex: idx }).catch(() => {});
+  // حذف من السيرفر بالـ timestamp (المعرّف الفريد)
+  if (tx.timestamp) {
+    apiCall('deleteTransaction', { timestamp: tx.timestamp }).catch(() => {});
+  }
 }
 
 // ===== SMS INPUT =====
@@ -1867,22 +1869,44 @@ async function uploadAllTransactions() {
   const txs = STATE.transactions;
   if (!txs.length) { showToast('لا توجد معاملات محلية', 'error'); return; }
 
-  if (!confirm(`سيتم رفع ${txs.length} معاملة إلى Google Sheets. هل أنت متأكد؟`)) return;
+  if (!confirm(`سيتم رفع ${txs.length} معاملة إلى Google Sheets مع تجنب التكرار. هل أنت متأكد؟`)) return;
 
-  el.textContent = '⏳ جاري الرفع...';
-  let success = 0, failed = 0;
+  el.textContent = '⏳ جاري التحقق من البيانات...';
 
-  for (const tx of [...txs].reverse()) {
-    try {
-      await apiCall('saveTransaction', { transaction: tx });
-      success++;
-    } catch(e) {
-      failed++;
+  try {
+    // اجلب timestamps الموجودة في الشيت أولاً
+    const existing = await apiCall('getTransactions', {});
+    const existingTimestamps = new Set((existing || []).map(t => t.timestamp));
+
+    // رفع فقط المعاملات غير الموجودة
+    const toUpload = [...txs].reverse().filter(tx => !existingTimestamps.has(tx.timestamp));
+
+    if (!toUpload.length) {
+      el.textContent = '✅ جميع المعاملات موجودة بالفعل في الشيت';
+      showToast('✅ لا يوجد جديد للرفع', 'success');
+      return;
     }
-  }
 
-  el.textContent = `✅ تم رفع ${success} معاملة${failed > 0 ? ` · فشل ${failed}` : ''}`;
-  showToast(`✅ تم رفع ${success} معاملة للسيرفر`, 'success');
+    el.textContent = `⏳ جاري رفع ${toUpload.length} معاملة جديدة...`;
+    let success = 0, failed = 0;
+
+    for (const tx of toUpload) {
+      try {
+        await apiCall('saveTransaction', { transaction: tx });
+        success++;
+        el.textContent = `⏳ تم رفع ${success} من ${toUpload.length}...`;
+      } catch(e) {
+        failed++;
+      }
+    }
+
+    el.textContent = `✅ رُفع ${success} جديدة${failed > 0 ? ` · فشل ${failed}` : ''}`;
+    showToast(`✅ تم رفع ${success} معاملة جديدة`, 'success');
+
+  } catch(e) {
+    el.textContent = '❌ تعذر الاتصال بالسيرفر';
+    showToast('❌ تعذر الاتصال', 'error');
+  }
 }
 
 async function testAPI() {
