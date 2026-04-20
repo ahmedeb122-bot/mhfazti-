@@ -1808,7 +1808,7 @@ async function uploadAllTransactions() {
   showToast(`✅ تم رفع ${success} معاملة للسيرفر`, 'success');
 }
 
-
+async function testAPI() {
   const el = document.getElementById('api-status'); el.textContent = '⏳ جاري المزامنة...';
   try {
     await loadData();
