@@ -358,6 +358,90 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 }
 .wallet-status-tag.creditor{background:rgba(52,211,153,0.15);color:var(--neon-green);}
 .wallet-status-tag.debtor{background:rgba(251,191,36,0.15);color:var(--neon-amber);}
+
+/* ===== عدسة التحليل — نافذة منبثقة ===== */
+#analysis-popup{
+  position:fixed;inset:0;z-index:3500;
+  background:rgba(5,6,15,0.92);backdrop-filter:blur(10px);
+  display:flex;align-items:flex-end;justify-content:center;
+  padding:0;opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
+#analysis-popup.open{opacity:1;pointer-events:all}
+.analysis-sheet{
+  width:100%;max-width:500px;background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  max-height:92vh;display:flex;flex-direction:column;
+  animation:slideUp 0.35s cubic-bezier(0.34,1.2,0.64,1);
+}
+.analysis-head{
+  padding:18px 20px 14px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;flex-shrink:0;
+}
+.analysis-head-title{font-size:16px;font-weight:700;flex:1;color:var(--neon-blue);}
+.analysis-close{
+  padding:7px 14px;border-radius:var(--radius-sm);
+  background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);
+  color:var(--neon-red);font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+}
+
+/* الفلاتر */
+.an-filters{padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;flex-direction:column;gap:10px;}
+.an-filter-row{display:flex;align-items:flex-start;gap:8px;}
+.an-filter-lbl{font-size:11px;color:var(--text-muted);padding-top:6px;white-space:nowrap;min-width:36px;}
+.an-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.an-chip{
+  padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;
+  background:var(--glass);border:1px solid var(--border);color:var(--text-secondary);
+  cursor:pointer;transition:all 0.15s;font-family:'IBM Plex Sans Arabic',sans-serif;white-space:nowrap;
+}
+.an-chip:active{transform:scale(0.95);}
+.an-chip.sel-time{background:rgba(96,165,250,0.15);border-color:var(--neon-blue);color:var(--neon-blue);}
+.an-chip.sel-wallet{background:var(--purple-dim);border-color:var(--neon-purple);color:var(--neon-purple);}
+.an-chip.sel-dir{background:var(--green-dim);border-color:var(--neon-green);color:var(--neon-green);}
+.an-chip.sel-cat{background:rgba(244,114,182,0.15);border-color:var(--neon-pink);color:var(--neon-pink);}
+
+/* حقول التاريخ المخصص */
+.an-custom-dates{
+  display:none;gap:8px;padding:0 16px 10px;flex-shrink:0;
+}
+.an-custom-dates.show{display:flex;}
+.an-date-input{
+  flex:1;padding:8px 10px;border-radius:var(--radius-sm);
+  background:var(--bg3);border:1px solid var(--border);
+  color:var(--text-primary);font-size:13px;outline:none;
+  font-family:'IBM Plex Sans Arabic',sans-serif;
+}
+.an-date-input:focus{border-color:var(--neon-blue);}
+.an-apply-btn{
+  padding:8px 14px;border-radius:var(--radius-sm);
+  background:rgba(96,165,250,0.15);border:1px solid rgba(96,165,250,0.3);
+  color:var(--neon-blue);font-size:13px;cursor:pointer;
+  font-family:'IBM Plex Sans Arabic',sans-serif;font-weight:600;
+}
+
+/* المجاميع */
+.an-summary{
+  padding:12px 16px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(96,165,250,0.06),rgba(167,139,250,0.04));
+  border-bottom:1px solid var(--border);
+}
+.an-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.an-stat{padding:8px 6px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);text-align:center;}
+.an-stat-lbl{font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;}
+.an-stat-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;}
+
+/* الرؤية الذكية */
+.an-insight{
+  margin:10px 16px 0;padding:9px 12px;border-radius:var(--radius-sm);
+  background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);
+  font-size:12px;color:var(--text-secondary);line-height:1.5;
+}
+
+/* قائمة المعاملات */
+.an-list{flex:1;overflow-y:auto;padding:10px 14px 30px;}
+.an-empty{text-align:center;padding:40px 20px;color:var(--text-muted);}
 </style>
 </head>
 <body>
@@ -462,6 +546,98 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   </div>
 </div>
 
+<!-- ===== عدسة التحليل — نافذة منبثقة ===== -->
+<div id="analysis-popup">
+  <div class="analysis-sheet">
+
+    <!-- العنوان -->
+    <div class="analysis-head">
+      <span style="font-size:20px">🔍</span>
+      <div class="analysis-head-title">عدسة التحليل المالي</div>
+      <button class="analysis-close" onclick="closeAnalysis()">✕ إغلاق</button>
+    </div>
+
+    <!-- الفلاتر -->
+    <div class="an-filters">
+
+      <!-- الفترة الزمنية -->
+      <div class="an-filter-row">
+        <div class="an-filter-lbl">📅</div>
+        <div class="an-chips" id="an-time-chips">
+          <div class="an-chip sel-time" data-val="all" onclick="anFilter('time',this)">الكل</div>
+          <div class="an-chip" data-val="month" onclick="anFilter('time',this)">هذا الشهر</div>
+          <div class="an-chip" data-val="3months" onclick="anFilter('time',this)">٣ أشهر</div>
+          <div class="an-chip" data-val="6months" onclick="anFilter('time',this)">٦ أشهر</div>
+          <div class="an-chip" data-val="year" onclick="anFilter('time',this)">السنة</div>
+          <div class="an-chip" data-val="custom" onclick="anFilter('time',this)">مخصص 📆</div>
+        </div>
+      </div>
+
+      <!-- تاريخ مخصص -->
+      <div class="an-custom-dates" id="an-custom-dates">
+        <input type="date" class="an-date-input" id="an-from" placeholder="من">
+        <input type="date" class="an-date-input" id="an-to" placeholder="إلى">
+        <button class="an-apply-btn" onclick="runAnalysis()">تطبيق</button>
+      </div>
+
+      <!-- الوعاء -->
+      <div class="an-filter-row">
+        <div class="an-filter-lbl">💼</div>
+        <div class="an-chips" id="an-wallet-chips">
+          <div class="an-chip sel-wallet" data-val="all" onclick="anFilter('wallet',this)">جميع الأوعية</div>
+          <div class="an-chip" data-val="راتب" onclick="anFilter('wallet',this)">💼 راتب</div>
+          <div class="an-chip" data-val="عهدة" onclick="anFilter('wallet',this)">🏗️ عهدة</div>
+          <div class="an-chip" data-val="هديل" onclick="anFilter('wallet',this)">💜 هديل</div>
+        </div>
+      </div>
+
+      <!-- الاتجاه: وارد / صادر -->
+      <div class="an-filter-row">
+        <div class="an-filter-lbl">↕</div>
+        <div class="an-chips" id="an-dir-chips">
+          <div class="an-chip sel-dir" data-val="all" onclick="anFilter('dir',this)">الكل</div>
+          <div class="an-chip" data-val="وارد" onclick="anFilter('dir',this)">وارد ↓</div>
+          <div class="an-chip" data-val="صادر" onclick="anFilter('dir',this)">صادر ↑</div>
+        </div>
+      </div>
+
+      <!-- التصنيف (يظهر فقط عند اختيار صادر) -->
+      <div class="an-filter-row" id="an-cat-row" style="display:none">
+        <div class="an-filter-lbl">🏷</div>
+        <div class="an-chips" id="an-cat-chips"></div>
+      </div>
+
+    </div>
+
+    <!-- المجاميع الفورية -->
+    <div class="an-summary">
+      <div class="an-stats">
+        <div class="an-stat">
+          <div class="an-stat-lbl">وارد</div>
+          <div class="an-stat-val" id="an-income" style="color:var(--neon-green)">0</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-lbl">صادر</div>
+          <div class="an-stat-val" id="an-expense" style="color:var(--neon-red)">0</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-lbl">الصافي</div>
+          <div class="an-stat-val" id="an-net">0</div>
+        </div>
+        <div class="an-stat">
+          <div class="an-stat-lbl">معاملة</div>
+          <div class="an-stat-val" id="an-count" style="color:var(--neon-blue)">0</div>
+        </div>
+      </div>
+      <div class="an-insight" id="an-insight" style="display:none"></div>
+    </div>
+
+    <!-- قائمة المعاملات -->
+    <div class="an-list" id="an-list"></div>
+
+  </div>
+</div>
+
 <!-- ===== موديل طابور SMS ===== -->
 <div class="queue-modal" id="queue-modal">
   <div class="queue-sheet">
@@ -557,7 +733,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     <div id="view-transactions" class="view">
       <div class="section-header" style="margin-top:8px">
         <div class="section-title">جميع المعاملات</div>
-        <div id="tx-filter-label" style="font-size:12px;color:var(--neon-purple);cursor:pointer;" onclick="clearTxFilter()"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div id="tx-filter-label" style="font-size:12px;color:var(--neon-purple);cursor:pointer;" onclick="clearTxFilter()"></div>
+          <button onclick="openAnalysis()" style="padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;background:rgba(96,165,250,0.12);border:1px solid rgba(96,165,250,0.3);color:var(--neon-blue);cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;align-items:center;gap:5px;">🔍 تحليل</button>
+        </div>
       </div>
       <div class="tx-list" id="tx-list-full">
         <div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-text">لا توجد معاملات محفوظة</div></div>
@@ -1658,6 +1837,159 @@ function showToast(msg, type = 'success') {
   t.textContent = msg;
   t.className = 'toast show ' + type;
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ===== وضع التحليل (Analysis Mode) =====
+// ===== عدسة التحليل =====
+const AN = { time:'all', wallet:'all', dir:'all', cat:'all' };
+
+function openAnalysis() {
+  // بناء شرائح التصنيفات من البيانات الفعلية
+  const cats = [...new Set(STATE.transactions.map(t=>t.category).filter(Boolean))];
+  const catContainer = document.getElementById('an-cat-chips');
+  catContainer.innerHTML = `<div class="an-chip sel-cat" data-val="all" onclick="anFilter('cat',this)">الكل</div>` +
+    cats.map(c => `<div class="an-chip" data-val="${c}" onclick="anFilter('cat',this)">${c}</div>`).join('');
+
+  document.getElementById('analysis-popup').classList.add('open');
+  runAnalysis();
+}
+
+function closeAnalysis() {
+  document.getElementById('analysis-popup').classList.remove('open');
+  // إعادة ضبط الفلاتر
+  AN.time = 'all'; AN.wallet = 'all'; AN.dir = 'all'; AN.cat = 'all';
+  // إعادة الشرائح بصرياً
+  ['an-time-chips','an-wallet-chips','an-dir-chips'].forEach(gid => {
+    const group = document.getElementById(gid);
+    if (!group) return;
+    group.querySelectorAll('.an-chip').forEach((c,i) => {
+      c.className = i === 0 ? 'an-chip ' + c.className.split(' ').find(x=>x.startsWith('sel-')) : 'an-chip';
+    });
+  });
+  document.getElementById('an-custom-dates').classList.remove('show');
+  document.getElementById('an-cat-row').style.display = 'none';
+}
+
+function anFilter(dim, el) {
+  const val = el.dataset.val;
+  AN[dim] = val;
+
+  // تحديث الشرائح بصرياً في المجموعة
+  const groupId = {'time':'an-time-chips','wallet':'an-wallet-chips','dir':'an-dir-chips','cat':'an-cat-chips'}[dim];
+  const selClass = {'time':'sel-time','wallet':'sel-wallet','dir':'sel-dir','cat':'sel-cat'}[dim];
+  document.getElementById(groupId).querySelectorAll('.an-chip').forEach(c => {
+    c.className = c === el ? 'an-chip ' + selClass : 'an-chip';
+  });
+
+  // إظهار/إخفاء التاريخ المخصص
+  if (dim === 'time') {
+    document.getElementById('an-custom-dates').classList.toggle('show', val === 'custom');
+  }
+
+  // إظهار/إخفاء التصنيف (فقط عند الصادر أو الكل)
+  if (dim === 'dir') {
+    const catRow = document.getElementById('an-cat-row');
+    catRow.style.display = (val === 'وارد') ? 'none' : 'flex';
+    if (val === 'وارد') { AN.cat = 'all'; }
+  }
+
+  if (val !== 'custom') runAnalysis();
+}
+
+function getAnalysisTxs() {
+  const now = new Date();
+  let txs = STATE.transactions.filter(t => t.type !== 'تحويل داخلي' && t.type !== 'تحويل صادر');
+
+  // فلتر الوقت
+  if (AN.time === 'month') {
+    txs = txs.filter(t => { const d=new Date(t.timestamp); return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); });
+  } else if (AN.time === '3months') {
+    const ago = new Date(now); ago.setMonth(ago.getMonth()-3);
+    txs = txs.filter(t => new Date(t.timestamp) >= ago);
+  } else if (AN.time === '6months') {
+    const ago = new Date(now); ago.setMonth(ago.getMonth()-6);
+    txs = txs.filter(t => new Date(t.timestamp) >= ago);
+  } else if (AN.time === 'year') {
+    txs = txs.filter(t => new Date(t.timestamp).getFullYear() === now.getFullYear());
+  } else if (AN.time === 'custom') {
+    const from = document.getElementById('an-from').value;
+    const to = document.getElementById('an-to').value;
+    if (from) txs = txs.filter(t => new Date(t.timestamp) >= new Date(from));
+    if (to) txs = txs.filter(t => new Date(t.timestamp) <= new Date(to + 'T23:59:59'));
+  }
+
+  // فلتر الوعاء
+  if (AN.wallet !== 'all') txs = txs.filter(t => t.wallet === AN.wallet);
+
+  // فلتر الاتجاه
+  if (AN.dir === 'وارد') txs = txs.filter(t => t.type === 'وارد');
+  else if (AN.dir === 'صادر') txs = txs.filter(t => t.type !== 'وارد');
+
+  // فلتر التصنيف
+  if (AN.cat !== 'all') txs = txs.filter(t => t.category === AN.cat);
+
+  return txs;
+}
+
+function runAnalysis() {
+  const txs = getAnalysisTxs();
+
+  const inc = txs.filter(t=>t.type==='وارد').reduce((s,t)=>s+t.amount,0);
+  const exp = txs.filter(t=>t.type!=='وارد').reduce((s,t)=>s+t.amount,0);
+  const net = inc - exp;
+
+  document.getElementById('an-income').textContent = '+' + formatNum(inc);
+  document.getElementById('an-expense').textContent = '-' + formatNum(exp);
+  const netEl = document.getElementById('an-net');
+  netEl.textContent = (net>=0?'+':'') + formatNum(net);
+  netEl.style.color = net>=0 ? 'var(--neon-green)' : 'var(--neon-red)';
+  document.getElementById('an-count').textContent = txs.length;
+
+  // الرؤية الذكية — أعلى بند صرف وحصته
+  const insightEl = document.getElementById('an-insight');
+  const byCategory = {};
+  txs.filter(t=>t.type!=='وارد').forEach(t => {
+    const c = t.category||'غير مصنّف';
+    byCategory[c] = (byCategory[c]||0) + t.amount;
+  });
+  const sorted = Object.entries(byCategory).sort((a,b)=>b[1]-a[1]);
+  if (sorted.length && exp > 0) {
+    const [topName, topAmt] = sorted[0];
+    const pct = Math.round((topAmt/exp)*100);
+    insightEl.style.display = 'block';
+    insightEl.innerHTML = `💡 أعلى بند: <strong style="color:var(--neon-purple)">${topName}</strong> — <span style="font-family:'JetBrains Mono',monospace">${formatNum(topAmt)} SAR</span> <span style="color:var(--neon-amber)">(${pct}% من الصادر)</span>` +
+      (sorted.length > 1 ? `<br><span style="color:var(--text-muted);font-size:11px;">يليه: ${sorted.slice(1,3).map(x=>`${x[0]} ${formatNum(x[1])}`).join(' · ')}</span>` : '');
+  } else {
+    insightEl.style.display = 'none';
+  }
+
+  // رسم المعاملات
+  const list = document.getElementById('an-list');
+  if (!txs.length) {
+    list.innerHTML = `<div class="an-empty"><div style="font-size:36px;opacity:0.3;margin-bottom:10px">🔍</div><div>لا توجد معاملات بهذه الفلاتر</div></div>`;
+    return;
+  }
+
+  list.innerHTML = txs.map(tx => {
+    const isInc = tx.type === 'وارد';
+    const cls = isInc ? 'income' : 'expense';
+    const walletCls = tx.wallet==='عهدة'?'work':tx.wallet==='هديل'?'hadeel':'';
+    const date = tx.timestamp ? new Date(tx.timestamp).toLocaleDateString('ar-SA') : '';
+    const catBadge = tx.category ? `<span style="font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(244,114,182,0.12);color:var(--neon-pink)">${tx.category}</span>` : '';
+    return `<div class="tx-item">
+      <div class="tx-icon ${cls}">${isInc?'⬇️':'⬆️'}</div>
+      <div class="tx-info">
+        <div class="tx-merchant">${tx.merchant||'—'}</div>
+        <div class="tx-meta">
+          <span>${tx.bank||''}</span>
+          <span class="tx-wallet-tag ${walletCls}">${tx.wallet}</span>
+          <span>${date}</span>
+          ${catBadge}
+        </div>
+      </div>
+      <div class="tx-amount ${cls}">${isInc?'+':'-'}${formatNum(tx.amount)} ${tx.currency||'SAR'}</div>
+    </div>`;
+  }).join('');
 }
 
 // ===== INIT =====
