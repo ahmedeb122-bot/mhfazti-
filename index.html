@@ -42,14 +42,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 
 /* ===== شاشة القفل ===== */
 #smart-lock{position:fixed;inset:0;z-index:9999;background:var(--bg0);display:flex;flex-direction:column;align-items:center;justify-content:center;}
-.lock-box{background:var(--bg1);padding:36px 28px;border-radius:var(--radius-lg);border:1px solid var(--border);text-align:center;width:90%;max-width:320px;box-shadow:0 10px 40px rgba(0,0,0,0.6);}
-.pin-dots{display:flex;justify-content:center;gap:14px;margin:24px 0 8px;}
-.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border2);background:transparent;transition:all 0.2s;}
-.pin-dot.filled{background:var(--neon-purple);border-color:var(--neon-purple);box-shadow:0 0 10px rgba(167,139,250,0.5);}
-.pin-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;}
-.pin-key{padding:16px;border-radius:var(--radius-md);background:var(--bg3);border:1px solid var(--border);color:var(--text-primary);font-size:20px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:'JetBrains Mono',monospace;}
-.pin-key:active{background:var(--purple-dim);border-color:var(--neon-purple);transform:scale(0.95);}
-.pin-key.del{color:var(--neon-red);font-size:16px;}
+.lock-box{background:var(--bg1);padding:30px;border-radius:var(--radius-lg);border:1px solid var(--border);text-align:center;width:90%;max-width:320px;box-shadow:0 10px 30px rgba(0,0,0,0.5);}
+.pin-input{width:100%;padding:15px;margin:20px 0;border-radius:var(--radius-sm);background:var(--bg3);border:1px solid var(--border);color:#fff;font-size:24px;text-align:center;letter-spacing:10px;font-family:monospace;}
+.pin-input:focus{outline:none;border-color:var(--neon-purple);}
 @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 .shake{animation:shake 0.4s ease;}
 
@@ -215,7 +210,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .queue-item-amount.income{color:var(--neon-green)}.queue-item-amount.expense{color:var(--neon-red)}
 
 /* Confirm Dialog */
-#confirm-dialog{position:fixed;inset:0;z-index:9500;background:rgba(5,6,15,0.9);display:flex;align-items:center;justify-content:center;display:none;}
+#confirm-dialog{position:fixed;inset:0;z-index:19999;background:rgba(5,6,15,0.92);display:flex;align-items:center;justify-content:center;display:none;}
 .confirm-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius-lg);padding:24px;width:90%;max-width:300px;text-align:center;}
 .confirm-title{font-size:16px;font-weight:600;margin-bottom:8px;}
 .confirm-msg{font-size:13px;color:var(--text-secondary);margin-bottom:20px;}
@@ -231,29 +226,12 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 <!-- شاشة القفل -->
 <div id="smart-lock">
   <div class="lock-box">
-    <div style="font-size:44px;margin-bottom:8px">🔐</div>
-    <div style="font-size:18px;font-weight:700">محفظتي</div>
-    <div style="font-size:13px;color:var(--text-secondary);margin-top:4px">أدخل رمز المرور</div>
-    <div class="pin-dots">
-      <div class="pin-dot" id="dot0"></div>
-      <div class="pin-dot" id="dot1"></div>
-      <div class="pin-dot" id="dot2"></div>
-      <div class="pin-dot" id="dot3"></div>
-    </div>
-    <div id="pin-error" style="font-size:12px;color:var(--neon-red);min-height:18px;margin-bottom:4px;"></div>
-    <div class="pin-pad">
-      <button class="pin-key" onclick="pinPress('1')">1</button>
-      <button class="pin-key" onclick="pinPress('2')">2</button>
-      <button class="pin-key" onclick="pinPress('3')">3</button>
-      <button class="pin-key" onclick="pinPress('4')">4</button>
-      <button class="pin-key" onclick="pinPress('5')">5</button>
-      <button class="pin-key" onclick="pinPress('6')">6</button>
-      <button class="pin-key" onclick="pinPress('7')">7</button>
-      <button class="pin-key" onclick="pinPress('8')">8</button>
-      <button class="pin-key" onclick="pinPress('9')">9</button>
-      <button class="pin-key" onclick="pinPress('0')" style="grid-column:2">0</button>
-      <button class="pin-key del" onclick="pinDel()">⌫</button>
-    </div>
+    <div style="font-size:40px;margin-bottom:10px">🔒</div>
+    <div style="font-size:18px;font-weight:600">النظام المالي محمي</div>
+    <div style="font-size:13px;color:var(--text-secondary);margin-top:5px;">أدخل رمز المرور للوصول الآمن</div>
+    <input type="password" id="pin-code" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" onkeydown="if(event.key==='Enter') checkPin()">
+    <button onclick="checkPin()" class="btn-save" style="width:100%">فتح النظام</button>
+    <div id="pin-error" style="font-size:12px;color:var(--neon-red);min-height:18px;margin-top:8px;"></div>
   </div>
 </div>
 
@@ -519,29 +497,10 @@ let STATE = {
 const BANK_ICONS = {'الراجحي':'🟢','SAB':'🔵','STC Bank':'🟣','ANB':'🔴','غير محدد':'🏦'};
 
 // ===== PIN =====
-let pinBuffer = '';
-
-function pinPress(d) {
-  if (pinBuffer.length >= 4) return;
-  pinBuffer += d;
-  updatePinDots();
-  if (pinBuffer.length === 4) setTimeout(checkPin, 200);
-}
-
-function pinDel() {
-  pinBuffer = pinBuffer.slice(0, -1);
-  updatePinDots();
-}
-
-function updatePinDots() {
-  for (let i=0;i<4;i++) {
-    document.getElementById('dot'+i).classList.toggle('filled', i < pinBuffer.length);
-  }
-}
-
 function checkPin() {
+  const input = document.getElementById('pin-code').value;
   const savedPin = safeGet('user_pin', DEFAULT_PIN);
-  if (pinBuffer === savedPin) {
+  if (input === savedPin) {
     document.getElementById('smart-lock').style.display = 'none';
     document.getElementById('app').classList.add('visible');
     loadData();
@@ -550,16 +509,14 @@ function checkPin() {
     document.getElementById('pin-error').textContent = '❌ رمز خاطئ، حاول مجدداً';
     document.querySelector('.lock-box').classList.add('shake');
     setTimeout(()=>{ document.querySelector('.lock-box').classList.remove('shake'); }, 400);
-    pinBuffer = '';
-    updatePinDots();
+    document.getElementById('pin-code').value = '';
   }
 }
 
 function lockApp() {
   document.getElementById('smart-lock').style.display = 'flex';
   document.getElementById('app').classList.remove('visible');
-  pinBuffer = '';
-  updatePinDots();
+  document.getElementById('pin-code').value = '';
   document.getElementById('pin-error').textContent = '';
 }
 
@@ -739,7 +696,20 @@ function showPopup(parsed, fromQueue=false) {
 }
 
 function showCategorySelector() {
-  const cats=[{icon:'🍔',label:'طعام'},{icon:'⛽',label:'وقود'},{icon:'🏠',label:'إيجار'},{icon:'⚡',label:'كهرباء/ماء'},{icon:'👨‍👩‍👧',label:'تحويل أهل'},{icon:'🛒',label:'منزل'},{icon:'💊',label:'صحة'},{icon:'👕',label:'ملابس'},{icon:'📱',label:'اتصالات'},{icon:'🎮',label:'ترفيه'},{icon:'📦',label:'أخرى'}];
+  const cats=[
+    {icon:'🍔',label:'طعام ومشروبات'},
+    {icon:'⛽',label:'وقود'},
+    {icon:'🏠',label:'إيجار سكن'},
+    {icon:'⚡',label:'كهرباء وماء'},
+    {icon:'🏘️',label:'سكن مشترك'},
+    {icon:'👨‍👩‍👧',label:'تحويل للأهل'},
+    {icon:'🛒',label:'منصرفات المنزل'},
+    {icon:'💊',label:'صحة'},
+    {icon:'👕',label:'ملابس'},
+    {icon:'📱',label:'اتصالات'},
+    {icon:'🎮',label:'ترفيه'},
+    {icon:'📦',label:'أخرى'}
+  ];
   document.getElementById('category-btns').innerHTML = cats.map(c=>
     `<button onclick="selectCategory('${c.label}')" id="cat-${c.label}" style="padding:10px 6px;border-radius:var(--radius-sm);background:var(--glass);border:1px solid var(--border);color:var(--text-secondary);font-size:12px;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all 0.15s;"><span style="font-size:16px">${c.icon}</span><span>${c.label}</span></button>`
   ).join('');
@@ -1029,10 +999,11 @@ function renderTransactions(target) {
 }
 
 function deleteTx(idx) {
-  showConfirm('حذف المعاملة','هل تريد حذف هذه المعاملة؟ سيتم عكس تأثيرها على الرصيد.','🗑️',()=>{
+  showConfirm('حذف المعاملة','هل تريد حذف هذه المعاملة؟ سيتم عكس تأثيرها على الرصيد.','🗑️', async ()=>{
     const tx = STATE.transactions[idx];
     if (!tx) return;
-    // عكس تأثير الرصيد
+
+    // عكس تأثير الرصيد محلياً
     const keyMap={'راتب':'salary','عهدة':'work','هديل':'hadeel'};
     const k=keyMap[tx.wallet];
     if (k) {
@@ -1041,8 +1012,9 @@ function deleteTx(idx) {
     }
     if (tx.coverageWallet) {
       const ck=keyMap[tx.coverageWallet];
-      if(ck) STATE.balances[ck]+=tx.coverageAmount;
+      if(ck) STATE.balances[ck]+=tx.coverageAmount||0;
     }
+
     STATE.transactions.splice(idx,1);
     safeSave('transactions', JSON.stringify(STATE.transactions));
     saveBalancesLocal();
@@ -1050,9 +1022,15 @@ function deleteTx(idx) {
     renderTransactions('home');
     renderTransactions('full');
     calcStats();
-    showToast('🗑️ تم حذف المعاملة','success');
-    // إبلاغ الـ API (اختياري)
-    apiCall('deleteTransaction',{idx}).catch(()=>{});
+    showToast('🗑️ جاري الحذف من Google Sheets...','success');
+
+    // حذف من Sheets باستخدام timestamp كمعرف فريد
+    try {
+      await apiCall('deleteTransaction', { timestamp: tx.timestamp });
+      showToast('✅ تم الحذف من Google Sheets','success');
+    } catch(e) {
+      showToast('⚠️ حُذف محلياً — لم يُحذف من Sheets','error');
+    }
   });
 }
 
