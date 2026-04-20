@@ -104,6 +104,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   animation:popupIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
 }
 @keyframes popupIn{from{transform:scale(0.85) translateY(20px);opacity:0}to{transform:none;opacity:1}}
+@keyframes popupShake{0%,100%{transform:scale(1)}25%{transform:scale(1.01) translateX(-4px)}75%{transform:scale(1.01) translateX(4px)}}
 .popup-header{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
 .popup-bank-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
 .popup-bank-name{font-size:13px;color:var(--text-secondary)}
@@ -290,6 +291,73 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .period-wallet-breakdown{padding:12px 14px;border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);margin-bottom:14px;}
 .period-wallet-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border);}
 .period-wallet-row:last-child{border-bottom:none;}
+
+/* ===== طابور SMS ===== */
+.queue-badge{
+  position:relative;display:flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:10px;background:var(--glass);
+  border:1px solid var(--border);cursor:pointer;font-size:18px;transition:all 0.2s;
+}
+.queue-badge:hover{background:var(--glass2);border-color:var(--border2)}
+.queue-count{
+  position:absolute;top:-5px;left:-5px;
+  background:#ef4444;color:#fff;font-size:10px;font-weight:700;
+  width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  border:2px solid var(--bg0);display:none;
+}
+.queue-count.show{display:flex}
+
+/* موديل قائمة الطابور */
+.queue-modal{
+  position:fixed;inset:0;z-index:4000;background:rgba(5,6,15,0.9);
+  backdrop-filter:blur(8px);display:flex;align-items:flex-end;justify-content:center;
+  padding:0;opacity:0;pointer-events:none;transition:opacity 0.25s;
+}
+.queue-modal.open{opacity:1;pointer-events:all}
+.queue-sheet{
+  width:100%;max-width:480px;background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:24px 20px 36px;
+  max-height:70vh;overflow-y:auto;
+  animation:slideUp 0.3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.queue-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  border-radius:var(--radius-md);background:var(--glass);border:1px solid var(--border);
+  margin-bottom:8px;cursor:pointer;transition:all 0.15s;
+}
+.queue-item:hover{background:var(--glass2);border-color:var(--neon-purple)}
+.queue-item-del{
+  width:28px;height:28px;border-radius:8px;background:rgba(248,113,113,0.1);
+  border:1px solid rgba(248,113,113,0.2);color:var(--neon-red);font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  margin-right:0;transition:all 0.2s;
+}
+
+/* ===== مديونيات الأوعية ===== */
+.debt-section{margin-bottom:20px;}
+.debt-card{
+  padding:14px 16px;border-radius:var(--radius-md);margin-bottom:8px;
+  background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.25);
+}
+.debt-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.debt-card-title{font-size:13px;font-weight:600;color:var(--neon-amber);}
+.debt-amount{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--neon-amber);}
+.debt-detail{font-size:12px;color:var(--text-secondary);margin-bottom:10px;}
+.debt-recover-btn{
+  width:100%;padding:9px;border-radius:var(--radius-sm);
+  background:rgba(52,211,153,0.12);border:1px solid rgba(52,211,153,0.3);
+  color:var(--neon-green);font-size:13px;font-weight:600;cursor:pointer;
+  font-family:'IBM Plex Sans Arabic',sans-serif;transition:all 0.2s;
+}
+.debt-recover-btn:hover{background:rgba(52,211,153,0.2);}
+/* شارة الوعاء: دائن / مدين */
+.wallet-status-tag{
+  display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;
+  border-radius:4px;margin-top:3px;
+}
+.wallet-status-tag.creditor{background:rgba(52,211,153,0.15);color:var(--neon-green);}
+.wallet-status-tag.debtor{background:rgba(251,191,36,0.15);color:var(--neon-amber);}
 </style>
 </head>
 <body>
@@ -394,6 +462,17 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   </div>
 </div>
 
+<!-- ===== موديل طابور SMS ===== -->
+<div class="queue-modal" id="queue-modal">
+  <div class="queue-sheet">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;">⏳ رسائل SMS في الانتظار</div>
+      <div onclick="closeQueueModal()" style="cursor:pointer;color:var(--text-muted);font-size:22px;line-height:1;">×</div>
+    </div>
+    <div id="queue-list"></div>
+  </div>
+</div>
+
 <!-- ===== التطبيق الرئيسي ===== -->
 <div id="app">
   <div class="topbar">
@@ -402,6 +481,9 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
       <div id="period-badge" onclick="switchView('periods')" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--purple-dim);border:1px solid var(--neon-purple);color:var(--neon-purple);cursor:pointer;white-space:nowrap;">...</div>
     </div>
     <div class="topbar-actions">
+      <div class="queue-badge" onclick="openQueueModal()" title="طابور الرسائل">
+        ⏳<div class="queue-count" id="queue-count">0</div>
+      </div>
       <div class="icon-btn" onclick="showSMSInput()" title="إدخال SMS">📩</div>
       <div class="icon-btn" onclick="location.reload()" title="قفل">🔒</div>
     </div>
@@ -416,18 +498,21 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <div class="wallet-name">الراتب</div>
           <div class="wallet-bal purple" id="bal-salary">...</div>
           <div class="wallet-currency">SAR</div>
+          <div id="tag-salary"></div>
         </div>
         <div class="wallet-card blue" onclick="filterByWallet('عهدة')">
           <div class="wallet-icon">🏗️</div>
           <div class="wallet-name">العهدة</div>
           <div class="wallet-bal blue" id="bal-work">...</div>
           <div class="wallet-currency">SAR</div>
+          <div id="tag-work"></div>
         </div>
         <div class="wallet-card pink" onclick="filterByWallet('هديل')">
           <div class="wallet-icon">💜</div>
           <div class="wallet-name">هديل</div>
           <div class="wallet-bal pink" id="bal-hadeel">...</div>
           <div class="wallet-currency">SAR</div>
+          <div id="tag-hadeel"></div>
         </div>
       </div>
 
@@ -440,6 +525,13 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <div class="stat-label">إجمالي صادر (الشهر)</div>
           <div class="stat-value" style="color:var(--neon-red)" id="stat-expense">—</div>
         </div>
+      </div>
+
+      <div class="debt-section fade-up delay-2" id="debt-section" style="display:none">
+        <div class="section-header">
+          <div class="section-title">⚠️ مديونيات الأوعية</div>
+        </div>
+        <div id="debt-list"></div>
       </div>
 
       <div class="fade-up delay-2">
@@ -614,6 +706,8 @@ let STATE = {
   balances: safeGetJSON('balances', { salary: 0, work: 0, hadeel: 0 }),
   transactions: safeGetJSON('transactions', []),
   periods: safeGetJSON('periods', []),
+  smsQueue: safeGetJSON('smsQueue', []),
+  debts: safeGetJSON('debts', []),
   currentPopup: null,
   selectedWallet: '',
   selectedCategory: '',
@@ -624,7 +718,8 @@ let STATE = {
   activePeriod: null,
   coverageWallet: null,
   coverageAmount: 0,
-  txFilterActive: false
+  txFilterActive: false,
+  popupOpen: false
 };
 
 const BANK_ICONS = {'الراجحي':'🟢','SAB':'🔵','STC Bank':'🟣','ANB':'🔴','غير محدد':'🏦'};
@@ -779,6 +874,18 @@ function showPopup(parsed) {
 
   document.getElementById('sms-popup').classList.add('active');
   document.body.style.overflow = 'hidden';
+  STATE.popupOpen = true;
+
+  // منع إغلاق الـ popup بالضغط خارجه
+  document.getElementById('sms-popup').onclick = function(e) {
+    if (e.target === this) {
+      // هز البطاقة لتنبيه المستخدم
+      const card = this.querySelector('.popup-card');
+      card.style.animation = 'none';
+      card.offsetHeight; // reflow
+      card.style.animation = 'popupShake 0.3s ease';
+    }
+  };
 }
 
 function showCategorySelector() {
@@ -878,6 +985,8 @@ async function saveFromPopup() {
     if (STATE.coverageWallet) {
       const cKey = {'راتب':'salary','عهدة':'work','هديل':'hadeel'}[STATE.coverageWallet];
       if(cKey) STATE.balances[cKey] = Math.max(0, STATE.balances[cKey] - STATE.coverageAmount);
+      // تسجيل مديونية: الوعاء الأصلي مدين للوعاء الذي غطّى
+      addDebt(tx.wallet, STATE.coverageWallet, STATE.coverageAmount, tx.timestamp);
     }
   }
   saveBalancesLocal(); updateBalanceUI();
@@ -900,12 +1009,149 @@ async function saveFromPopup() {
 function closePopup() {
   document.getElementById('sms-popup').classList.remove('active');
   document.body.style.overflow = '';
+  STATE.popupOpen = false;
+  // بعد الإغلاق تحقق إذا في رسائل بالطابور
+  setTimeout(() => processNextInQueue(), 300);
 }
 
-// إصلاح: زر التجاهل يعمل بشكل صحيح ويغلق النافذة
 function skipPopup() {
+  if (!confirm('هل أنت متأكد أنك تريد تجاهل هذه الرسالة؟')) return;
   closePopup();
   showToast('🚫 تم تجاهل الرسالة', 'success');
+}
+
+// ===== طابور SMS =====
+function addToQueue(parsed) {
+  STATE.smsQueue.push(parsed);
+  safeSave('smsQueue', JSON.stringify(STATE.smsQueue));
+  updateQueueBadge();
+}
+
+function updateQueueBadge() {
+  const count = STATE.smsQueue.length;
+  const badge = document.getElementById('queue-count');
+  if (badge) {
+    badge.textContent = count;
+    badge.classList.toggle('show', count > 0);
+  }
+}
+
+function processNextInQueue() {
+  if (STATE.popupOpen) return;
+  if (STATE.smsQueue.length === 0) return;
+  const next = STATE.smsQueue.shift();
+  safeSave('smsQueue', JSON.stringify(STATE.smsQueue));
+  updateQueueBadge();
+  showPopup(next);
+}
+
+function openQueueModal() {
+  const list = document.getElementById('queue-list');
+  if (!STATE.smsQueue.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:20px 0"><div class="empty-state-icon" style="font-size:28px">✅</div><div class="empty-state-text">لا توجد رسائل في الانتظار</div></div>`;
+  } else {
+    list.innerHTML = STATE.smsQueue.map((item, i) => {
+      const isInc = item.type === 'وارد';
+      return `<div class="queue-item" onclick="openFromQueue(${i})">
+        <div style="font-size:22px">${BANK_ICONS[item.bank]||'🏦'}</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600">${isInc?'+':'-'}${formatNum(item.amount)} ${item.currency||'SAR'}</div>
+          <div style="font-size:12px;color:var(--text-secondary)">${item.bank} · ${item.merchant||'—'} · ${item.type}</div>
+        </div>
+        <button class="queue-item-del" onclick="removeFromQueue(${i}, event)">🗑</button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('queue-modal').classList.add('open');
+}
+
+function closeQueueModal() {
+  document.getElementById('queue-modal').classList.remove('open');
+}
+
+function openFromQueue(idx) {
+  closeQueueModal();
+  const item = STATE.smsQueue.splice(idx, 1)[0];
+  safeSave('smsQueue', JSON.stringify(STATE.smsQueue));
+  updateQueueBadge();
+  showPopup(item);
+}
+
+function removeFromQueue(idx, event) {
+  event.stopPropagation();
+  STATE.smsQueue.splice(idx, 1);
+  safeSave('smsQueue', JSON.stringify(STATE.smsQueue));
+  updateQueueBadge();
+  openQueueModal(); // تحديث القائمة
+}
+
+// ===== مديونيات الأوعية =====
+function addDebt(fromWallet, toWallet, amount, txRef) {
+  // fromWallet = الوعاء المدين (اقترض)، toWallet = الوعاء الدائن (أعطى)
+  STATE.debts.push({
+    id: Date.now(),
+    fromWallet, // مدين
+    toWallet,   // دائن
+    amount,
+    txRef,
+    date: new Date().toISOString(),
+    settled: false
+  });
+  safeSave('debts', JSON.stringify(STATE.debts));
+  renderDebts();
+}
+
+function recoverDebt(debtId) {
+  const debt = STATE.debts.find(d => d.id === debtId);
+  if (!debt) return;
+  if (!confirm(`هل تأكد استرداد ${formatNum(debt.amount)} SAR من وعاء ${debt.fromWallet} لوعاء ${debt.toWallet}؟`)) return;
+
+  // إعادة المبلغ للوعاء الدائن وخصمه من المدين (تسوية)
+  const fromKey = {'راتب':'salary','عهدة':'work','هديل':'hadeel'}[debt.fromWallet];
+  const toKey = {'راتب':'salary','عهدة':'work','هديل':'hadeel'}[debt.toWallet];
+  if (fromKey) STATE.balances[fromKey] = Math.max(0, STATE.balances[fromKey] - debt.amount);
+  if (toKey) STATE.balances[toKey] += debt.amount;
+  saveBalancesLocal(); updateBalanceUI();
+
+  STATE.debts = STATE.debts.filter(d => d.id !== debtId);
+  safeSave('debts', JSON.stringify(STATE.debts));
+  renderDebts();
+  renderWalletStatusTags();
+  showToast(`✅ تم استرداد ${formatNum(debt.amount)} SAR لوعاء ${debt.toWallet}`, 'success');
+}
+
+function renderDebts() {
+  const activeDebts = STATE.debts.filter(d => !d.settled);
+  const section = document.getElementById('debt-section');
+  const list = document.getElementById('debt-list');
+  if (!section || !list) return;
+  if (!activeDebts.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  list.innerHTML = activeDebts.map(d => `
+    <div class="debt-card">
+      <div class="debt-card-header">
+        <div class="debt-card-title">🔄 وعاء ${d.fromWallet} مدين لـ ${d.toWallet}</div>
+        <div class="debt-amount">${formatNum(d.amount)} SAR</div>
+      </div>
+      <div class="debt-detail">تاريخ الاستدانة: ${new Date(d.date).toLocaleDateString('ar-SA')}</div>
+      <button class="debt-recover-btn" onclick="recoverDebt(${d.id})">✓ تم الاسترداد — إغلاق المديونية</button>
+    </div>
+  `).join('');
+  renderWalletStatusTags();
+}
+
+function renderWalletStatusTags() {
+  const wallets = ['راتب','عهدة','هديل'];
+  const tagIds = {'راتب':'tag-salary','عهدة':'tag-work','هديل':'tag-hadeel'};
+  wallets.forEach(w => {
+    const el = document.getElementById(tagIds[w]);
+    if (!el) return;
+    const isDebtor = STATE.debts.some(d => !d.settled && d.fromWallet === w);
+    const isCreditor = STATE.debts.some(d => !d.settled && d.toWallet === w);
+    if (isDebtor) el.innerHTML = `<div class="wallet-status-tag debtor">مدين ⚠️</div>`;
+    else if (isCreditor) el.innerHTML = `<div class="wallet-status-tag creditor">دائن ✓</div>`;
+    else el.innerHTML = '';
+  });
 }
 
 // ===== حذف المعاملة (مُصلح) =====
@@ -988,6 +1234,7 @@ async function loadData() {
       loadPeriodsView();
       loadReports();
       loadInvoices();
+      renderDebts();
       showToast('✅ تمت المزامنة مع Google Sheets', 'success');
     }
   } catch(e) {
@@ -1426,19 +1673,37 @@ window.addEventListener('load', () => {
   }
 
   loadData();
+  updateQueueBadge();
+  renderDebts();
 
+  // معالجة رسالة SMS من تاسكر
   if (smsFromUrl) {
     const smsText = decodeURIComponent(smsFromUrl);
     setTimeout(() => {
       const parsed = parseSMSText(smsText);
       if (parsed && !parsed.internal) {
-        showPopup(parsed);
+        if (STATE.popupOpen) {
+          // النافذة مفتوحة → ضع في الطابور
+          addToQueue(parsed);
+          showToast('⏳ رسالة أضيفت للطابور', 'success');
+        } else {
+          showPopup(parsed);
+        }
       } else if (parsed && parsed.internal) {
         showToast('🔄 تحويل داخلي — تم تجاهله تلقائياً', 'success');
       }
       window.history.replaceState({}, document.title, window.location.pathname);
     }, 500);
   }
+
+  // منع زر الرجوع من إغلاق الـ popup
+  history.pushState(null, '', location.href);
+  window.addEventListener('popstate', () => {
+    if (STATE.popupOpen) {
+      // لا تغلق — أعد الحالة
+      history.pushState(null, '', location.href);
+    }
+  });
 });
 </script>
 </body>
