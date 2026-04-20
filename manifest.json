@@ -3,6 +3,7 @@
   "short_name": "محفظتي",
   "description": "نظام تتبع المعاملات المالية الذكي",
   "start_url": "/mhfazti-/",
+  "scope": "/mhfazti-/",
   "display": "standalone",
   "background_color": "#05060f",
   "theme_color": "#05060f",
