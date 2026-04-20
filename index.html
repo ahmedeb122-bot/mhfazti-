@@ -2038,5 +2038,10 @@ window.addEventListener('load', () => {
   });
 });
 </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/mhfazti-/sw.js');
+  }
+</script>
 </body>
 </html>
