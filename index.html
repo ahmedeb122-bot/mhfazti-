@@ -1042,12 +1042,37 @@ function isFinancialSMS(t) {
   return hasAmount;
 }
 
+// ✅ منطق التحويلات الداخلية المحسّن — يعمل مع كل البنوك الأربعة
 function isInternalTransfer(t) {
-  // حسابات أحمد الشخصية — أرقام الحسابات الثلاثة
-  const myAccounts = ['5299', '7001', '2719'];
-  const found = myAccounts.filter(a => t.includes(a));
-  // إذا ظهر رقمان أو أكثر من حساباتي، هذا تحويل داخلي
-  if (found.length >= 2) return true;
+  // كل أرقام حساباتي وبطاقاتي (للاحتياط — كل الأرقام مضافة)
+  const MY_ACCOUNTS = ['5299', '7001', '5893', '6802', '2719', '0014', '714', '5119'];
+  // أرقام الحسابات الرئيسية (IBAN) فقط — ليست بطاقات
+  const MY_IBAN_ENDINGS = ['5299', '7001', '714', '0014'];
+  // كل صيغ اسمي
+  const MY_NAMES = [
+    'احمد شريف', 'أحمد شريف', 'احمد ش', 'أحمد ش',
+    'Ahmed Shareef', 'AHMED SHAREEF', 'ahmed shareef',
+    'Ahmed Sharif', 'AHMED SHARIF'
+  ];
+
+  // القاعدة 1: ظهور رقمَي IBAN من حساباتي = تحويل داخلي مؤكد
+  const ibanFound = MY_IBAN_ENDINGS.filter(a => t.includes(a));
+  if (ibanFound.length >= 2) return true;
+
+  // القاعدة 2: ذكر اسمي + أي رقم من حساباتي = تحويل داخلي
+  // (تغطي رسائل STC التي تحتوي على حساب واحد فقط)
+  const hasMyName = MY_NAMES.some(n => t.includes(n));
+  if (hasMyName) {
+    const anyAccount = MY_ACCOUNTS.some(a => t.includes(a));
+    if (anyAccount) return true;
+  }
+
+  // القاعدة 3: كلمات صريحة
+  if (/حوالة داخلية صادرة.*حوالة داخلية واردة/.test(t)) return true;
+
+  // القاعدة 4: حوالة سريعة/فورية + اسمي
+  if (/حوالة.*(سريع|فوري|عاجل)/.test(t) && hasMyName) return true;
+
   return false;
 }
 
@@ -1455,11 +1480,21 @@ function deleteTransaction(idx, event) {
   loadInvoices();
   showToast('🗑️ تم حذف المعاملة', 'success');
 
-  // حذف من السيرفر بالـ timestamp (المعرّف الفريد)
+  // ✅ حذف من السيرفر بالـ timestamp مع تغذية راجعة واضحة
   if (tx.timestamp) {
     apiCall('deleteTransaction', { timestamp: tx.timestamp })
-      .then(r => { if(r && r.deleted) console.log('حُذفت من Sheets'); })
-      .catch(() => {});
+      .then(r => {
+        if (r && r.deleted) {
+          console.log('✅ حُذفت من Google Sheets (صف ' + r.row + ')');
+        } else {
+          console.warn('⚠️ فشل الحذف من Sheets:', r ? r.reason : 'رد فارغ');
+          showToast('⚠️ المعاملة حُذفت محلياً فقط — لم تُحذف من Google Sheets', 'error');
+        }
+      })
+      .catch(err => {
+        console.error('خطأ اتصال عند الحذف:', err);
+        showToast('⚠️ فشل الاتصال بـ Google Sheets', 'error');
+      });
   }
 }
 
@@ -1631,9 +1666,19 @@ function loadInvoices() {
 
 function toggleInvoice(idx, field) {
   if (!STATE.transactions[idx]) return;
-  STATE.transactions[idx][field] = !STATE.transactions[idx][field];
+  const tx = STATE.transactions[idx];
+  tx[field] = !tx[field];
   safeSave('transactions', JSON.stringify(STATE.transactions));
-  apiCall('updateInvoice', { rowIndex: idx, field, value: STATE.transactions[idx][field] }).catch(() => {});
+  // ✅ نرسل timestamp بدلاً من rowIndex — الدالة الجديدة في api.gs تعتمد عليه
+  apiCall('updateInvoice', {
+    timestamp: tx.timestamp,
+    field: field,
+    value: tx[field]
+  }).then(result => {
+    if (result && result.updated === false) {
+      console.warn('تحذير: updateInvoice فشل في السيرفر:', result.reason);
+    }
+  }).catch(err => console.log('updateInvoice error:', err));
   loadInvoices();
   showToast(field === 'invoiceReceived' ? '📥 تم التأشير على الاستلام' : '📤 تم التأشير على التسليم', 'success');
 }
@@ -2202,11 +2247,12 @@ window.addEventListener('load', () => {
 });
 </script>
 <script>
+  // ✅ تسجيل Service Worker بمسار نسبي (يشتغل في أي مستودع)
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/mhfazti-/sw.js')
-        .then(() => console.log('SW registered'))
-        .catch(e => console.log('SW error:', e));
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('✅ Service Worker مُسجّل. النطاق:', reg.scope))
+        .catch(e => console.log('❌ SW error:', e));
     });
   }
 </script>
