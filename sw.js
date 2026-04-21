@@ -1,25 +1,27 @@
-// ===== Service Worker — محفظتي =====
-const CACHE_NAME = 'mhfazti-v1';
-const BASE = '/mhfazti-/';
+// ===== Service Worker — محفظتي v2 =====
+// ✅ يستخدم مسارات نسبية (./) فيشتغل في أي مجلد
+// ✅ يدعم رسائل SMS من تاسكر حتى بدون إنترنت
 
-// الملفات التي نخزنها للعمل بدون إنترنت
+const CACHE_NAME = 'mhfazti-v2';
+
+// الملفات للتخزين المؤقت (مسارات نسبية)
 const FILES_TO_CACHE = [
-  BASE,
-  BASE + 'index.html',
-  BASE + 'manifest.json'
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-// عند التثبيت: خزّن الملفات
+// التثبيت: تخزين الملفات
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(FILES_TO_CACHE);
-    })
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(FILES_TO_CACHE))
+      .catch(err => console.log('SW install error (safe to ignore):', err))
   );
   self.skipWaiting();
 });
 
-// عند التفعيل: احذف الكاش القديم
+// التفعيل: حذف الكاش القديم
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -31,25 +33,66 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// عند الطلب: قدّم من الكاش أولاً، ثم من الإنترنت
+// ✅ معالج الطلبات: Network-First للصفحة الرئيسية، Cache-First للبقية
 self.addEventListener('fetch', event => {
-  // تجاهل طلبات API الخارجية (Google Apps Script)
+  // تجاهل طلبات Google Apps Script تماماً (تحتاج الإنترنت دائماً)
   if (event.request.url.includes('script.google.com')) return;
+  if (event.request.url.includes('docs.google.com')) return;
 
+  // تجاهل طلبات POST (لا نخزنها)
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+
+  // ===== استراتيجية خاصة: إذا كانت الصفحة تحتوي ?sms= أو ?key= =====
+  // (رسائل تاسكر) — نجيب الصفحة من الكاش فوراً ونمرر معاملات URL
+  if (url.search && (url.search.includes('sms=') || url.search.includes('key='))) {
+    event.respondWith(
+      caches.match('./index.html')
+        .then(cached => {
+          if (cached) {
+            // نعيد الصفحة من الكاش مع الحفاظ على URL (بما فيه ?sms=)
+            return cached;
+          }
+          return fetch(event.request);
+        })
+        .catch(() => fetch(event.request))
+    );
+    return;
+  }
+
+  // ===== Network-First للصفحة الرئيسية =====
+  if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() =>
+          caches.match(event.request).then(cached => cached || caches.match('./index.html'))
+        )
+    );
+    return;
+  }
+
+  // ===== Cache-First لباقي الموارد =====
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(response => {
-        // خزّن النسخة الجديدة
         if (response && response.status === 200 && response.type === 'basic') {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
         return response;
       }).catch(() => {
-        // لا إنترنت ولا كاش — أعد الصفحة الرئيسية
+        // إذا طلب صفحة ولا يوجد إنترنت → أعد index.html
         if (event.request.destination === 'document') {
-          return caches.match(BASE + 'index.html');
+          return caches.match('./index.html');
         }
       });
     })
