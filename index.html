@@ -156,6 +156,41 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;flex-shrink:0;background:linear-gradient(to bottom,var(--bg1),transparent);position:relative;z-index:10;}
 .topbar-logo{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--neon-purple),var(--neon-blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .topbar-actions{display:flex;gap:10px}
+
+/* ⭐ شريط تنبيه صندوق الواردات */
+.inbox-alert{
+  display:none;margin:0 16px 12px;padding:12px 16px;border-radius:var(--radius-md);
+  background:linear-gradient(135deg,rgba(52,211,153,0.15),rgba(96,165,250,0.1));
+  border:1px solid rgba(52,211,153,0.4);cursor:pointer;
+  animation:pulseGlow 2s ease-in-out infinite;
+  position:relative;z-index:5;
+}
+.inbox-alert.show{display:flex;align-items:center;gap:12px;}
+.inbox-alert-icon{font-size:28px;flex-shrink:0;animation:bounce 1.5s ease-in-out infinite;}
+.inbox-alert-text{flex:1;}
+.inbox-alert-title{font-size:14px;font-weight:700;color:var(--neon-green);}
+.inbox-alert-sub{font-size:12px;color:var(--text-secondary);margin-top:2px;}
+.inbox-alert-arrow{font-size:22px;color:var(--neon-green);}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,0.2);}50%{box-shadow:0 0 20px 4px rgba(52,211,153,0.2);}}
+@keyframes bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+/* ⭐ تبويب صندوق الواردات */
+.inbox-item{
+  display:flex;gap:12px;padding:14px;border-radius:var(--radius-md);
+  background:var(--glass);border:1px solid var(--border);margin-bottom:10px;
+  transition:all 0.2s;
+}
+.inbox-item.new-msg{border-color:rgba(52,211,153,0.3);background:rgba(52,211,153,0.05);}
+.inbox-item-icon{width:38px;height:38px;border-radius:10px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.inbox-item-body{flex:1;min-width:0;}
+.inbox-item-time{font-size:11px;color:var(--text-muted);margin-bottom:4px;}
+.inbox-item-text{font-size:13px;color:var(--text-primary);line-height:1.5;word-break:break-word;max-height:60px;overflow:hidden;margin-bottom:10px;}
+.inbox-item-actions{display:flex;gap:8px;}
+.inbox-btn{flex:1;padding:8px;border-radius:var(--radius-sm);border:none;font-size:12px;font-weight:600;cursor:pointer;font-family:'IBM Plex Sans Arabic',sans-serif;transition:all 0.15s;}
+.inbox-btn-classify{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;}
+.inbox-btn-ignore{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:var(--neon-red);}
+.inbox-btn:active{transform:scale(0.97);}
+.inbox-sync-indicator{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);margin-bottom:14px;}
 .icon-btn{width:38px;height:38px;border-radius:10px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all 0.2s;}
 .icon-btn:hover{background:var(--glass2);border-color:var(--border2)}
 .scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;padding:0 16px 100px;position:relative;z-index:1;}
@@ -678,6 +713,16 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
     </div>
   </div>
 
+  <!-- ⭐ شريط تنبيه صندوق الواردات (يظهر عند وجود رسائل جديدة) -->
+  <div class="inbox-alert" id="inbox-alert" onclick="switchView('inbox')">
+    <div class="inbox-alert-icon">📥</div>
+    <div class="inbox-alert-text">
+      <div class="inbox-alert-title">لديك <span id="inbox-alert-count">0</span> رسالة جديدة</div>
+      <div class="inbox-alert-sub">اضغط لتصنيفها</div>
+    </div>
+    <div class="inbox-alert-arrow">›</div>
+  </div>
+
   <div class="scroll-area" id="scroll-area">
     <!-- الرئيسية -->
     <div id="view-home" class="view active">
@@ -739,6 +784,20 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
           <textarea class="sms-textarea" id="sms-textarea" placeholder="الصق رسالة البنك هنا..."></textarea>
           <button class="sms-parse-btn" onclick="parseSMSInput()">🔍 تحليل الرسالة</button>
         </div>
+      </div>
+    </div>
+
+    <!-- ⭐ صندوق الواردات -->
+    <div id="view-inbox" class="view">
+      <div class="section-header" style="margin-top:8px">
+        <div class="section-title">📥 صندوق الواردات</div>
+        <div class="section-action" onclick="fetchInboxMessages(true)">🔄 تحديث</div>
+      </div>
+      <div class="inbox-sync-indicator" id="inbox-sync">
+        <span id="inbox-sync-text">آخر مزامنة: —</span>
+      </div>
+      <div id="inbox-list">
+        <div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">لا توجد رسائل جديدة في الصندوق<br>تاسكر سيرسل الرسائل هنا تلقائياً</div></div>
       </div>
     </div>
 
@@ -855,10 +914,10 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
   <!-- شريط التنقل -->
   <div class="bottom-nav">
     <button class="nav-btn active" id="nav-home" onclick="switchView('home')"><span class="nav-btn-icon">🏠</span>الرئيسية</button>
+    <button class="nav-btn" id="nav-inbox" onclick="switchView('inbox')" style="position:relative"><span class="nav-btn-icon">📥</span>الصندوق<span id="nav-inbox-badge" style="display:none;position:absolute;top:2px;left:2px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 4px;">0</span></button>
     <button class="nav-btn" id="nav-transactions" onclick="switchView('transactions')"><span class="nav-btn-icon">📋</span>المعاملات</button>
     <button class="nav-btn" id="nav-invoices" onclick="switchView('invoices')"><span class="nav-btn-icon">📄</span>الفواتير</button>
     <button class="nav-btn" id="nav-reports" onclick="switchView('reports')"><span class="nav-btn-icon">📊</span>التقارير</button>
-    <button class="nav-btn" id="nav-periods" onclick="switchView('periods')"><span class="nav-btn-icon">🗓️</span>الفترات</button>
     <button class="nav-btn" id="nav-settings" onclick="switchView('settings')"><span class="nav-btn-icon">⚙️</span>الإعدادات</button>
   </div>
 </div>
@@ -868,7 +927,7 @@ body{font-family:'IBM Plex Sans Arabic',sans-serif;color:#e8eaf6;font-size:15px;
 <script>
 // ===== CONFIG =====
 const API_URL = 'https://script.google.com/macros/s/AKfycbzsIwBk9Q5qv1Zabqt_vuAjG0PUHK1Qo6CoYIyY9GXCDLN59FBYlDADL5XVN7k_Z7w/exec';
-  const SHEETS_URL = 'https://docs.google.com/spreadsheets';
+const SHEETS_URL = 'https://docs.google.com/spreadsheets';
 const HADEEL_WHATSAPP = '249998451318';
 const WALID_WHATSAPP = '966539635310';
 
@@ -971,7 +1030,10 @@ let STATE = {
   periods: safeGetJSON('periods', []),
   smsQueue: safeGetJSON('smsQueue', []),
   debts: safeGetJSON('debts', []),
-  deletedTimestamps: safeGetJSON('deletedTimestamps', []), // سجل المحذوفات
+  deletedTimestamps: safeGetJSON('deletedTimestamps', []),
+  inboxMessages: [],        // ⭐ رسائل الصندوق (من السيرفر)
+  currentInboxId: null,     // ⭐ معرّف الرسالة قيد التصنيف حالياً
+  lastInboxSync: null,      // ⭐ آخر وقت مزامنة
   currentPopup: null,
   selectedWallet: '',
   selectedCategory: '',
@@ -1004,6 +1066,7 @@ function switchView(name) {
     if (!STATE.txFilterActive) renderTransactions('full');
   }
   if (name === 'periods') loadPeriodsView();
+  if (name === 'inbox') fetchInboxMessages(true); // ⭐ تحديث فوري عند دخول الصندوق
 }
 
 function clearTxFilter() {
@@ -1287,6 +1350,16 @@ async function saveFromPopup() {
     showToast('✅ تم الحفظ محلياً', 'success');
   }
 
+  // ⭐ إذا كانت الرسالة من صندوق الواردات، علّمها كمصنّفة
+  if (STATE.currentInboxId) {
+    const idToMark = STATE.currentInboxId;
+    STATE.inboxMessages = STATE.inboxMessages.filter(m => m.inboxId !== idToMark);
+    renderInbox();
+    updateInboxUI();
+    apiCall('markInboxDone', { inboxId: idToMark }).catch(e => console.log('markInboxDone err:', e));
+    STATE.currentInboxId = null;
+  }
+
   closePopup();
   renderTransactions('home');
   renderTransactions('full');
@@ -1299,12 +1372,24 @@ function closePopup() {
   document.getElementById('sms-popup').classList.remove('active');
   document.body.style.overflow = '';
   STATE.popupOpen = false;
+  STATE.currentInboxId = null; // ⭐ تنظيف
   // بعد الإغلاق تحقق إذا في رسائل بالطابور
   setTimeout(() => processNextInQueue(), 300);
 }
 
 function skipPopup() {
   if (!confirm('هل أنت متأكد أنك تريد تجاهل هذه الرسالة؟')) return;
+
+  // ⭐ إذا كانت من الصندوق، علّمها كمتجاهلة
+  if (STATE.currentInboxId) {
+    const idToMark = STATE.currentInboxId;
+    STATE.inboxMessages = STATE.inboxMessages.filter(m => m.inboxId !== idToMark);
+    renderInbox();
+    updateInboxUI();
+    apiCall('markInboxIgnored', { inboxId: idToMark }).catch(e => console.log('markInboxIgnored err:', e));
+    STATE.currentInboxId = null;
+  }
+
   closePopup();
   showToast('🚫 تم تجاهل الرسالة', 'success');
 }
@@ -2198,6 +2283,167 @@ function runAnalysis() {
   }).join('');
 }
 
+// ═══════════════════════════════════════════════════════
+// ⭐⭐⭐ صندوق الواردات (Inbox) ⭐⭐⭐
+// ═══════════════════════════════════════════════════════
+
+// سحب الرسائل الجديدة من السيرفر
+async function fetchInboxMessages(showLoading) {
+  if (showLoading) {
+    const syncText = document.getElementById('inbox-sync-text');
+    if (syncText) syncText.textContent = '⏳ جاري التحديث...';
+  }
+
+  try {
+    const messages = await apiCall('getInbox', {});
+    STATE.inboxMessages = Array.isArray(messages) ? messages : [];
+    STATE.lastInboxSync = new Date();
+    renderInbox();
+    updateInboxUI();
+  } catch(e) {
+    console.log('Inbox fetch error:', e);
+    const syncText = document.getElementById('inbox-sync-text');
+    if (syncText) syncText.textContent = '⚠️ تعذر الاتصال بالسيرفر';
+  }
+}
+
+// تحديث عدّاد الصندوق في شريط التنبيه والتنقل
+function updateInboxUI() {
+  const count = STATE.inboxMessages.length;
+  const alert = document.getElementById('inbox-alert');
+  const alertCount = document.getElementById('inbox-alert-count');
+  const navBadge = document.getElementById('nav-inbox-badge');
+
+  if (alertCount) alertCount.textContent = count;
+
+  // شريط التنبيه: يظهر فقط إذا فيه رسائل والمستخدم ليس في تبويب الصندوق
+  if (alert) {
+    if (count > 0 && STATE.currentView !== 'inbox') {
+      alert.classList.add('show');
+    } else {
+      alert.classList.remove('show');
+    }
+  }
+
+  // شارة الصندوق في شريط التنقل
+  if (navBadge) {
+    if (count > 0) {
+      navBadge.style.display = 'flex';
+      navBadge.textContent = count > 9 ? '9+' : count;
+    } else {
+      navBadge.style.display = 'none';
+    }
+  }
+}
+
+// عرض الرسائل في تبويب الصندوق
+function renderInbox() {
+  const list = document.getElementById('inbox-list');
+  const syncText = document.getElementById('inbox-sync-text');
+  if (!list) return;
+
+  // تحديث نص المزامنة
+  if (syncText && STATE.lastInboxSync) {
+    const t = STATE.lastInboxSync.toLocaleTimeString('ar-SA', {hour:'2-digit',minute:'2-digit'});
+    syncText.textContent = 'آخر مزامنة: ' + t + ' · ' + STATE.inboxMessages.length + ' رسالة';
+  }
+
+  if (!STATE.inboxMessages.length) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">لا توجد رسائل جديدة في الصندوق<br>تاسكر سيرسل الرسائل هنا تلقائياً</div></div>';
+    return;
+  }
+
+  list.innerHTML = STATE.inboxMessages.map(msg => {
+    const receivedTime = msg.receivedAt ? new Date(msg.receivedAt).toLocaleString('ar-SA', {
+      month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    }) : '—';
+    // نحاول نعمل معاينة سريعة: بنك + مبلغ
+    const previewAmount = extractAmount(msg.smsText);
+    const previewBank = detectBank(msg.smsText);
+    const previewIcon = BANK_ICONS[previewBank] || '🏦';
+
+    // تشفير النص لتمريره في onclick بأمان
+    const msgIdEsc = msg.inboxId.replace(/'/g, "\\'");
+
+    return '<div class="inbox-item new-msg">' +
+      '<div class="inbox-item-icon">' + previewIcon + '</div>' +
+      '<div class="inbox-item-body">' +
+        '<div class="inbox-item-time">📅 ' + receivedTime +
+        (previewAmount > 0 ? ' · 💰 ' + formatNum(previewAmount) + ' SAR' : '') +
+        (previewBank !== 'غير محدد' ? ' · ' + previewBank : '') + '</div>' +
+        '<div class="inbox-item-text">' + escapeHtml(msg.smsText) + '</div>' +
+        '<div class="inbox-item-actions">' +
+          '<button class="inbox-btn inbox-btn-classify" onclick="classifyInboxMessage(\'' + msgIdEsc + '\')">🎯 تصنيف</button>' +
+          '<button class="inbox-btn inbox-btn-ignore" onclick="ignoreInboxMessage(\'' + msgIdEsc + '\')">🚫 تجاهل</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+// دالة مساعدة لمنع XSS
+function escapeHtml(text) {
+  const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// تصنيف رسالة من الصندوق → يفتح الـ popup المعتاد
+function classifyInboxMessage(inboxId) {
+  const msg = STATE.inboxMessages.find(m => m.inboxId === inboxId);
+  if (!msg) {
+    showToast('⚠️ الرسالة غير موجودة', 'error');
+    return;
+  }
+
+  const parsed = parseSMSText(msg.smsText);
+  if (!parsed) {
+    // الرسالة ليست مالية → نعلّمها كمتجاهلة ونخبر المستخدم
+    showToast('ℹ️ هذه الرسالة ليست معاملة مالية — سيتم تجاهلها', 'success');
+    ignoreInboxMessage(inboxId);
+    return;
+  }
+
+  if (parsed.internal) {
+    showToast('🔄 تحويل داخلي — تم تجاهله تلقائياً', 'success');
+    ignoreInboxMessage(inboxId);
+    return;
+  }
+
+  // نحفظ الـ inboxId عشان نعلّم الرسالة لما تُحفظ
+  STATE.currentInboxId = inboxId;
+  showPopup(parsed);
+}
+
+// تجاهل رسالة من الصندوق
+async function ignoreInboxMessage(inboxId) {
+  // إزالة محلية فورية
+  STATE.inboxMessages = STATE.inboxMessages.filter(m => m.inboxId !== inboxId);
+  renderInbox();
+  updateInboxUI();
+
+  // إبلاغ السيرفر
+  try {
+    await apiCall('markInboxIgnored', { inboxId: inboxId });
+  } catch(e) {
+    console.log('markInboxIgnored error:', e);
+  }
+}
+
+// بدء المزامنة التلقائية (كل 30 ثانية)
+let inboxInterval = null;
+function startInboxAutoSync() {
+  // مزامنة فورية عند البدء
+  fetchInboxMessages(false);
+
+  // مزامنة كل 30 ثانية
+  if (inboxInterval) clearInterval(inboxInterval);
+  inboxInterval = setInterval(() => {
+    // لا نزامن إذا الـ popup مفتوح (لا نزعج المستخدم)
+    if (!STATE.popupOpen) fetchInboxMessages(false);
+  }, 30000); // 30 ثانية
+}
+
 // ===== INIT =====
 window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -2215,6 +2461,9 @@ window.addEventListener('load', () => {
   loadData();
   updateQueueBadge();
   renderDebts();
+
+  // ⭐ بدء مزامنة صندوق الواردات بعد 3 ثواني (بعد تحميل البيانات الأساسية)
+  setTimeout(() => startInboxAutoSync(), 3000);
 
   // معالجة رسالة SMS من تاسكر
   if (smsFromUrl) {
